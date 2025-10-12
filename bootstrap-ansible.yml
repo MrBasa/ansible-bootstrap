@@ -1,0 +1,11 @@
+# bootstrap-ansible.yml
+- name: "Bootstrap Ansible dependencies"
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: "Install required Ansible collections"
+      become: yes
+      ansible.builtin.command: "ansible-galaxy collection install community.general"
+      args:
+        creates: "/root/.ansible/collections/ansible_collections/community/general"
