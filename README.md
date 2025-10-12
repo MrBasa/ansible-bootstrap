@@ -2,8 +2,8 @@
 
 This repository contains an Ansible playbook to bootstrap a new Linux machine (Debian, Fedora, or Arch-based). It installs a common set of development tools and prepares the system for personal dotfile management with Chezmoi.
 
-<<<<<<< HEAD
 ---
+
 ## Software Installed
 
 This playbook installs the following software:
@@ -30,18 +30,9 @@ This playbook installs the following software:
 
 ## Usage on a New Machine
 
-This is the **first step** in setting up a new environment.
-
-### 1. Install Dependencies
-=======
-
-
-## Usage on a New Machine
-
 This is the first step in setting up a new environment. Run the appropriate command for your OS to install the dependencies, then run the `ansible-pull` command to execute the playbook.
 
 ### Step 1: Install Dependencies
->>>>>>> dec696a0179c42bb12244fc0167bf03ca2b6c3ac
 
 **On Debian/Ubuntu:**
 ```bash
@@ -58,17 +49,11 @@ sudo dnf install -y ansible-core git
 sudo pacman -Syu --needed ansible-core git
 ```
 
-<<<<<<< HEAD
-### 2. Run the Playbook
-
-This command is the same for all systems. **Important:** Replace `your-username` with your actual GitHub username.
-=======
 ### Step 2: Run the Playbook
 
 This command is the same for all systems. It pulls the playbook from this repository and runs it locally to configure your system.
 
 **Important:** Replace `your-username` with your actual GitHub username.
->>>>>>> dec696a0179c42bb12244fc0167bf03ca2b6c3ac
 
 ```bash
 sudo ansible-pull -U [https://github.com/your-username/ansible-bootstrap.git](https://github.com/your-username/ansible-bootstrap.git)
