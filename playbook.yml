@@ -4,13 +4,16 @@
   connection: local
 
   vars:
-    # --- Common Packages (identical names across all distros) ---
+    # --- Automatically discover the user who ran the 'sudo' command ---
+    bootstrap_user: "{{ ansible_env.SUDO_USER | default(ansible_user_id) }}"
+
+    # --- Packages with identical names across all distros ---
     common_packages:
       - git
       - curl
       - fish
       - lsd
-      - bat # Installs the binary as 'batcat' in Debian
+      - bat # Name is consistent, executable is handled post-install
       - fzf
       - zoxide
       - duf
@@ -21,25 +24,30 @@
       - micro
       - thefuck
       - figlet
-      - cow
+      - cowsay
       - fortune-mod # Base for fortunes
 
-    # --- Distro-Specific Packages ---
+    # --- Distro-Specific Packages (Official Repositories Only) ---
     debian_packages:
-      - fonts-firacode # Nerd Font
+      - fonts-firacode
       - fortune-anarchism
       - anarchism
+
     fedora_packages:
-      - cascadia-code-nf-fonts.noarch # Nerd Font
-      - chezmoi # Available in the official repos
-    arch_packages:
-      - ttf-firacode # Nerd Font
-      - chezmoi # Available in the official repos
-      - fortune-mod-anarchism # Provides fortune files
+      - cascadia-code-nf-fonts
+      - chezmoi
+
+    arch_official_packages:
+      - ttf-firacode
+      - chezmoi
+
+    # --- AUR-Only Packages (for Arch Linux) ---
+    arch_aur_packages:
+      - fortune-mod-anarchism
       - anarchism
 
   tasks:
-    # --- System-Level Package Installation ---
+    # === DEBIAN & FEDORA: SINGLE-STAGE INSTALL ===
     - name: "Update package cache and install packages (Debian)"
       become: yes
       ansible.builtin.apt:
@@ -48,55 +56,56 @@
         update_cache: yes
       when: ansible_os_family == "Debian"
 
-    - name: "Install packages (Fedora/RedHat)"
+    - name: "Install packages (Fedora)"
       become: yes
       ansible.builtin.dnf:
         name: "{{ common_packages + fedora_packages }}"
         state: present
       when: ansible_os_family == "RedHat"
 
-    - name: "Install packages (Arch)"
+    # === ARCH LINUX: MULTI-STAGE INSTALL ===
+    - name: "Install Official Packages (Arch)"
       become: yes
       community.general.pacman:
-        name: "{{ common_packages + arch_packages }}"
+        name: "{{ common_packages + arch_official_packages }}"
         state: present
         update_cache: yes
       when: ansible_os_family == "Archlinux"
-
-    # --- System-Wide Configuration & Tools ---
-    - name: "Link batcat to bat (Debian only)"
-      become: yes
-      ansible.builtin.file:
-        src: /usr/bin/batcat
-        dest: /usr/local/bin/bat
-        state: link
-      when: ansible_os_family == "Debian"
-
-    - name: "Install Chezmoi via script (for Debian/Fedora)"
-      become: yes
-      ansible.builtin.shell: 'sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /usr/local/bin'
-      args:
-        creates: /usr/local/bin/chezmoi
-      when: ansible_os_family != "Archlinux"
 
     - name: "Install yay AUR helper (Arch only)"
       block:
         - name: "Install build tools"
           become: yes
-          community.general.pacman:
-            name: [base-devel, git]
-            state: present
-        
+          community.general.pacman: name=[base-devel, git] state=present
         - name: "Clone yay repository"
-          ansible.builtin.git:
-            repo: 'https://aur.archlinux.org/yay.git'
-            dest: "/tmp/yay"
-        
+          ansible.builtin.git: repo='https://aur.archlinux.org/yay.git' dest="/tmp/yay"
         - name: "Build and install yay"
-          become: no 
+          become: yes
+          become_user: "{{ bootstrap_user }}"
           ansible.builtin.shell: "makepkg -si --noconfirm"
           args:
             chdir: "/tmp/yay"
             creates: /usr/bin/yay
       when: ansible_os_family == "Archlinux"
 
+    - name: "Install AUR Packages with yay (Arch only)"
+      become: yes
+      become_user: "{{ bootstrap_user }}"
+      community.general.pacman:
+        name: "{{ arch_aur_packages }}"
+        state: present
+        executable: yay # Use yay instead of pacman
+      when: ansible_os_family == "Archlinux"
+
+    # --- System-Wide Configuration & Tools ---
+    - name: "Link batcat to bat (Debian only)"
+      become: yes
+      ansible.builtin.file: src=/usr/bin/batcat dest=/usr/local/bin/bat state=link
+      when: ansible_os_family == "Debian"
+
+    - name: "Install Chezmoi via script (Debian only)"
+      become: yes
+      ansible.builtin.shell: 'sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /usr/local/bin'
+      args:
+        creates: /usr/local/bin/chezmoi
+      when: ansible_os_family == "Debian"
