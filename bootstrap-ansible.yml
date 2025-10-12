@@ -6,6 +6,7 @@
   tasks:
     - name: "Install required Ansible collections"
       become: yes
-      ansible.builtin.command: "ansible-galaxy collection install community.general"
+      ansible.builtin.command: "ansible-galaxy collection install community.general community.aur"
       args:
-        creates: "/root/.ansible/collections/ansible_collections/community/general"
+        # This will only run if the directory for the last collection doesn't exist
+        creates: "/root/.ansible/collections/ansible_collections/community/aur"

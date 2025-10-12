@@ -45,6 +45,7 @@
 
     # --- AUR-Only Packages (for Arch Linux) ---
     arch_aur_packages:
+      - yay
       - fortune-mod-anarchism
       - anarchism
 
@@ -75,13 +76,13 @@
       when: ansible_os_family == "Archlinux"
 
     - name: "Install AUR Packages with yay (Arch only)"
-      become: yes
-      become_user: "{{ bootstrap_user }}"
-      ansible.builtin.shell:
-        cmd: "yay -S --noconfirm --needed {{ arch_aur_packages | join(' ') }}"
-      register: aur_install_result
-      changed_when: "'there is nothing to do' not in aur_install_result.stdout"
-      when: ansible_os_family == "Archlinux"
+          become: yes
+          become_user: "{{ bootstrap_user }}"
+          ansible.builtin.shell:
+            cmd: "yay -S --noconfirm --needed {{ arch_aur_packages | join(' ') }}"
+          register: aur_install_result
+          changed_when: "'there is nothing to do' not in aur_install_result.stdout"
+          when: ansible_os_family == "Archlinux"
 
     # --- System-Wide Configuration & Tools ---
     - name: "Link batcat to bat (Debian only)"
