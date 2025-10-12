@@ -10,10 +10,10 @@
 
   tasks:
   - name: "Ensure collection directories are removed before cloning"
-      become: yes
-        ansible.builtin.file:
-          path: "{{ item }}"
-          state: absent
+    become: yes
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
       loop:
           - "{{ galaxy_collections_path }}/community/general"
           - "{{ galaxy_collections_path }}/kewlfft/aur"
