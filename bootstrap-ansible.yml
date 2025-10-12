@@ -1,6 +1,6 @@
 # bootstrap-ansible.yml
 # This playbook MUST be run first. Its only job is to install the Ansible collections
-# needed by the main playbook, using the --pre flag to resolve dependency issues.
+# needed by the main playbook.
 - name: "Bootstrap Ansible dependencies"
   hosts: localhost
   connection: local
@@ -8,7 +8,9 @@
   tasks:
     - name: "Install required Ansible collections"
       become: yes
-      ansible.builtin.command: "ansible-galaxy collection install community.general community.aur --pre"
-      args:
-        # This task will only run if the collection is not already installed
-        creates: "/root/.ansible/collections/ansible_collections/community/aur"
+      ansible.builtin.ansible_galaxy_collection:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - community.general
+        - community.aur
