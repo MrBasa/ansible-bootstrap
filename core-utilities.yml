@@ -44,13 +44,14 @@
     # --- Stage 1: Bootstrap Ansible Itself ---
     - name: "Install required Ansible collections (if needed)"
       become: yes
-      ansible.builtin.command: "ansible-galaxy collection install community.general community.aur"
+      ansible.builtin.command: "ansible-galaxy collection install community.general community.aur --pre"
       args:
         creates: "/root/.ansible/collections/ansible_collections/community/aur"
       changed_when: false
 
     - name: "Force Ansible to re-read collection paths"
       ansible.builtin.meta: flush_handlers
+
 
     # --- Stage 2: System Package Installation ---
     - name: "Update package cache and install packages (Debian)"
@@ -83,6 +84,7 @@
         name: "{{ arch_aur_packages }}"
         state: present
       when: ansible_os_family == "Archlinux"
+
 
     # --- Stage 3: System-Wide Configuration ---
     - name: "Link batcat to bat (Debian only)"
