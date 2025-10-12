@@ -49,6 +49,14 @@
       - anarchism
 
   tasks:
+    # === INSTALL ANSIBLE DEPENDENCIES ===
+    - name: "Install required Ansible collections"
+      become: yes
+      ansible.builtin.command: "ansible-galaxy collection install community.general"
+      args:
+        # This task will only run if the collection is not already installed
+        creates: "/root/.ansible/collections/ansible_collections/community/general"
+
     # === DEBIAN & FEDORA: SINGLE-STAGE INSTALL ===
     - name: "Update package cache and install packages (Debian)"
       become: yes
