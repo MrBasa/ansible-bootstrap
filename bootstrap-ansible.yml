@@ -12,10 +12,10 @@
   tasks:
     - name: "Install required Ansible collections"
       become: yes
-      ansible.builtin.command: "ansible-galaxy collection install {{ item }}"
+      ansible.builtin.command: "ansible-galaxy collection install {{ item.name }} {{ item.flags | default('') }}"
       args:
-        # This prevents re-installing a collection that already exists, making the task idempotent.
-        creates: "{{ galaxy_collection_path }}/{{ item | replace('.', '/') }}"
+        # This prevents re-installing a collection that already exists
+        creates: "{{ galaxy_collection_path }}/{{ item.name | replace('.', '/') }}"
       loop:
-        - community.general
-        - community.aur
+        - { name: 'community.general' }
+        - { name: 'community.aur', flags: '--pre' }
