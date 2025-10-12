@@ -1,4 +1,5 @@
 # bootstrap-ansible.yml
+# This playbook installs required Ansible collections directly from their git repos.
 - name: "Bootstrap Ansible dependencies"
   hosts: localhost
   connection: local
@@ -8,13 +9,14 @@
     galaxy_collections_path: "{{ ansible_env.HOME }}/.ansible/collections/ansible_collections"
 
   tasks:
-    - name: "Install community.general collection via ansible-galaxy"
+    - name: "Install community.general collection via git"
       become: yes
-      ansible.builtin.command: "ansible-galaxy collection install community.general"
-      args:
-        creates: "{{ galaxy_collections_path }}/community/general"
+      ansible.builtin.git:
+        repo: 'https://github.com/ansible-collections/community.general.git'
+        dest: "{{ galaxy_collections_path }}/community/general"
+        version: stable-9 # Using the latest stable branch
 
-    - name: "Install AUR collection via git from the correct URL"
+    - name: "Install AUR collection via git"
       become: yes
       ansible.builtin.git:
         repo: 'https://github.com/kewlfft/ansible-aur.git'
