@@ -1,0 +1,3 @@
+# This tells Ansible that 'localhost' is a valid host and that it
+# should execute commands directly on the local machine.
+localhost ansible_connection=local
