@@ -14,7 +14,8 @@
       ansible.builtin.git:
         repo: 'https://github.com/ansible-collections/community.general.git'
         dest: "{{ galaxy_collections_path }}/community/general"
-        version: stable-9 # Using the latest stable branch
+        version: stable-9
+        force: yes # <-- Update repo if it already exists
 
     - name: "Install AUR collection via git"
       become: yes
@@ -22,3 +23,4 @@
         repo: 'https://github.com/kewlfft/ansible-aur.git'
         dest: "{{ galaxy_collections_path }}/kewlfft/aur"
         version: master
+        force: yes # <-- For consistency and idempotency
