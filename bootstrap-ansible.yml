@@ -23,3 +23,6 @@
         repo: 'https://github.com/ansible-collections/community.aur.git'
         dest: "{{ galaxy_collections_path }}/community/aur"
         version: main
+      environment:
+        https_proxy: ""
+        HTTPS_PROXY: ""
