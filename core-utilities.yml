@@ -1,19 +1,16 @@
 # core-utilities.yml
-- name: "Bootstrap a new Linux environment (Debian/Fedora/Arch)"
+- name: "Bootstrap Ansible and System Dependencies"
   hosts: localhost
   connection: local
 
   vars:
-    # --- Automatically discover the user who ran the 'sudo' command ---
     bootstrap_user: "{{ ansible_env.SUDO_USER | default(ansible_user_id) }}"
-
-    # --- Packages with identical names across all distros ---
     common_packages:
       - git
       - curl
       - fish
       - lsd
-      - bat # Name is consistent, executable is handled post-install
+      - bat
       - fzf
       - zoxide
       - duf
@@ -25,32 +22,37 @@
       - thefuck
       - figlet
       - cowsay
-      - fortune-mod # Base for fortunes
-
-    # --- Distro-Specific Packages (Official Repositories Only) ---
+      - fortune-mod
     debian_packages:
       - 7zip
       - fonts-firacode
       - fortune-anarchism
       - anarchism
-
     fedora_packages:
       - cascadia-code-nf-fonts
       - chezmoi
-
     arch_official_packages:
       - 7zip
       - ttf-firacode-nerd
       - chezmoi
-
-    # --- AUR-Only Packages (for Arch Linux) ---
     arch_aur_packages:
       - yay
       - fortune-mod-anarchism
       - anarchism
 
   tasks:
-    # --- Official Package Installation ---
+    # --- Stage 1: Bootstrap Ansible Itself ---
+    - name: "Install required Ansible collections (if needed)"
+      become: yes
+      ansible.builtin.command: "ansible-galaxy collection install community.general community.aur"
+      args:
+        creates: "/root/.ansible/collections/ansible_collections/community/aur"
+      changed_when: false
+
+    - name: "Force Ansible to re-read collection paths"
+      ansible.builtin.meta: flush_handlers
+
+    # --- Stage 2: System Package Installation ---
     - name: "Update package cache and install packages (Debian)"
       become: yes
       ansible.builtin.apt:
@@ -74,7 +76,6 @@
         update_cache: yes
       when: ansible_os_family == "Archlinux"
 
-    # --- AUR Package Installation ---
     - name: "Install AUR Packages (Arch only)"
       become: yes
       become_user: "{{ bootstrap_user }}"
@@ -83,7 +84,7 @@
         state: present
       when: ansible_os_family == "Archlinux"
 
-    # --- System-Wide Configuration ---
+    # --- Stage 3: System-Wide Configuration ---
     - name: "Link batcat to bat (Debian only)"
       become: yes
       ansible.builtin.file:
