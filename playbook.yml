@@ -24,15 +24,14 @@
 
     # --- Distro-Specific Packages ---
     debian_packages:
-      - fonts-firacode
+      - fonts-firacode # Nerd Font
       - fortune-anarchism
       - anarchism
     fedora_packages:
-      - cascadia-code-nf-fonts.noarch
+      - cascadia-code-nf-fonts.noarch # Nerd Font
       - chezmoi
     arch_packages:
-      - ttf-firacode
-      - bat # Binary is 'bat'
+      - ttf-firacode # Nerd Font
       - fortune-mod-anarchism # Provides fortune files
       - chezmoi # Available in the official repos
       - anarchism
