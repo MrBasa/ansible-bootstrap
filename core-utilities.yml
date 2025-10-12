@@ -50,12 +50,27 @@
 
   tasks:
     # === INSTALL ANSIBLE DEPENDENCIES ===
-    - name: "Install required Ansible collections"
-      become: yes
-      ansible.builtin.command: "ansible-galaxy collection install community.general"
-      args:
-        # This task will only run if the collection is not already installed
-        creates: "/root/.ansible/collections/ansible_collections/community/general"
+    - name: "Install yay AUR helper (Arch only)"
+          block:
+            - name: "Install build tools"
+              become: yes
+              community.general.pacman:
+                name:
+                  - base-devel
+                  - git
+                state: present
+            
+            - name: "Clone yay repository"
+              ansible.builtin.git: repo='https://aur.archlinux.org/yay.git' dest="/tmp/yay"
+            
+            - name: "Build and install yay"
+              become: yes
+              become_user: "{{ bootstrap_user }}"
+              ansible.builtin.shell: "makepkg -si --noconfirm"
+              args:
+                chdir: "/tmp/yay"
+                creates: /usr/bin/yay
+          when: ansible_os_family == "Archlinux"
 
     # === DEBIAN & FEDORA: SINGLE-STAGE INSTALL ===
     - name: "Update package cache and install packages (Debian)"
