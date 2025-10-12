@@ -2,34 +2,43 @@
 - name: "Bootstrap a new Linux environment (Debian/Fedora/Arch)"
   hosts: localhost
   connection: local
-  # 'become' will be handled on a per-task basis now
-  # become: yes 
 
   vars:
-    # Packages with identical names on all OS families
+    # --- Common Packages (identical names across all distros) ---
     common_packages:
       - fish
       - lsd
       - git
       - curl
+      - figlet
+      - bat # Installs the binary as 'batcat' in Debian
+      - fzf
+      - zoxide
+      - duf
+      - mc
+      - entr
+      - tealdeer
+      - btop
+      - micro
+      - fortune-mod # Base for fortunes
 
-    # Packages for Debian/Ubuntu
+    # --- Distro-Specific Packages ---
     debian_packages:
       - fonts-firacode
-      - bat # Installs the binary as 'batcat'
-
-    # Packages for RedHat/Fedora
-    redhat_packages:
-      - fira-code-fonts
-      - bat # Installs the binary as 'bat'
-
-    # Packages for Arch Linux
+      - fortune-anarchism
+      - anarchism
+    fedora_packages:
+      - cascadia-code-nf-fonts.noarch
+      - chezmoi
     arch_packages:
-      - ttf-fira-code
-      - bat # Binary is 'bat', no symlink needed
-      - chezmoi # Available in the official Arch repos, which is preferred
+      - ttf-firacode
+      - bat # Binary is 'bat'
+      - fortune-mod-anarchism # Provides fortune files
+      - chezmoi # Available in the official repos
+      - anarchism
 
   tasks:
+    # --- System-Level Package Installation ---
     - name: "Update package cache and install packages (Debian)"
       become: yes
       ansible.builtin.apt:
@@ -38,10 +47,10 @@
         update_cache: yes
       when: ansible_os_family == "Debian"
 
-    - name: "Install packages (RedHat)"
+    - name: "Install packages (Fedora/RedHat)"
       become: yes
       ansible.builtin.dnf:
-        name: "{{ common_packages + redhat_packages }}"
+        name: "{{ common_packages + fedora_packages }}"
         state: present
       when: ansible_os_family == "RedHat"
 
@@ -53,6 +62,7 @@
         update_cache: yes
       when: ansible_os_family == "Archlinux"
 
+    # --- System-Wide Configuration & Tools ---
     - name: "Link batcat to bat (Debian only)"
       become: yes
       ansible.builtin.file:
@@ -73,9 +83,7 @@
         - name: "Install build tools"
           become: yes
           community.general.pacman:
-            name:
-              - base-devel
-              - git
+            name: [base-devel, git]
             state: present
         
         - name: "Clone yay repository"
@@ -84,10 +92,10 @@
             dest: "/tmp/yay"
         
         - name: "Build and install yay"
-          # This must run as a regular user, not root
           become: no 
           ansible.builtin.shell: "makepkg -si --noconfirm"
           args:
             chdir: "/tmp/yay"
             creates: /usr/bin/yay
       when: ansible_os_family == "Archlinux"
+
