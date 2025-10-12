@@ -11,6 +11,7 @@
       - git
       - curl
       - figlet
+      - cow
       - bat # Installs the binary as 'batcat' in Debian
       - fzf
       - zoxide
@@ -29,11 +30,11 @@
       - anarchism
     fedora_packages:
       - cascadia-code-nf-fonts.noarch # Nerd Font
-      - chezmoi
+      - chezmoi # Available in the official repos
     arch_packages:
       - ttf-firacode # Nerd Font
-      - fortune-mod-anarchism # Provides fortune files
       - chezmoi # Available in the official repos
+      - fortune-mod-anarchism # Provides fortune files
       - anarchism
 
   tasks:

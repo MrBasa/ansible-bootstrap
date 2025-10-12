@@ -10,11 +10,13 @@ This playbook installs the following software:
 
 | Tool | Project Homepage | Description |
 | :--- | :--- | :--- |
+| **`anarchism`** | N/A | Exhaustive exploration of Anarchist theory and practice. |
 | **`fish`** | [fishshell.com](https://fishshell.com/) | A smart and user-friendly command line shell. |
 | **`lsd`** | [GitHub](https://github.com/Peltoche/lsd) | A modern `ls` command with lots of colors and icons. |
 | **`bat`** | [GitHub](https://github.com/sharkdp/bat) | A `cat` clone with syntax highlighting and Git integration. |
 | **`FiraCode`** | [GitHub](https://github.com/tonsky/FiraCode) | A monospaced font with programming ligatures. |
 | **`figlet`** | [figlet.org](http://www.figlet.org/) | A program for making large letters out of ordinary text. |
+| **`cowsay`** | [Wikipedia](https://en.wikipedia.org/wiki/Cowsay) | A program that generates ASCII art pictures of a cow with a message. |
 | **`fzf`** | [GitHub](https://github.com/junegunn/fzf) | A general-purpose command-line fuzzy finder. |
 | **`zoxide`** | [GitHub](https://github.com/ajeetdsouza/zoxide) | A smarter `cd` command that learns your habits. |
 | **`duf`** | [GitHub](https://github.com/muesli/duf) | A better `df` alternative for disk usage analysis. |
