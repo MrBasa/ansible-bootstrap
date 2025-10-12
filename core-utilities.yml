@@ -54,6 +54,7 @@
           block:
             - name: "Install build tools"
               become: yes
+              # --- CORRECTED SYNTAX BELOW ---
               community.general.pacman:
                 name:
                   - base-devel
@@ -61,7 +62,7 @@
                 state: present
             
             - name: "Clone yay repository"
-              ansible.builtin.git: repo='https://aur.archlinux.org/yay.git' dest="/tmp/yay"
+              ansible.builtin.git: repo='https'//aur.archlinux.org/yay.git' dest="/tmp/yay"
             
             - name: "Build and install yay"
               become: yes
