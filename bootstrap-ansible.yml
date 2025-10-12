@@ -1,21 +1,25 @@
 # bootstrap-ansible.yml
-# This playbook installs the Ansible collections required by the main playbook.
-# It is designed to run on a minimal 'ansible-core' installation.
+# This playbook installs required Ansible collections, bypassing the Galaxy
+# resolver for the problematic community.aur collection.
 - name: "Bootstrap Ansible dependencies"
   hosts: localhost
   connection: local
 
   vars:
-    # Define the path where collections are installed for the user running the playbook
-    galaxy_collection_path: "{{ ansible_env.HOME }}/.ansible/collections/ansible_collections"
+    # Define the base path where Ansible looks for collections
+    galaxy_collections_path: "{{ ansible_env.HOME }}/.ansible/collections/ansible_collections"
 
   tasks:
-    - name: "Install required Ansible collections"
+    - name: "Install community.general collection via ansible-galaxy"
       become: yes
-      ansible.builtin.command: "ansible-galaxy collection install {{ item.name }} {{ item.flags | default('') }}"
+      ansible.builtin.command: "ansible-galaxy collection install community.general"
       args:
-        # This prevents re-installing a collection that already exists
-        creates: "{{ galaxy_collection_path }}/{{ item.name | replace('.', '/') }}"
-      loop:
-        - { name: 'community.general' }
-        - { name: 'community.aur', flags: '--pre' }
+        # Prevents re-running if the collection is already installed
+        creates: "{{ galaxy_collections_path }}/community/general"
+
+    - name: "Install community.aur collection via git clone"
+      become: yes
+      ansible.builtin.git:
+        repo: 'https://github.com/ansible-collections/community.aur.git'
+        dest: "{{ galaxy_collections_path }}/community/aur"
+        version: main
