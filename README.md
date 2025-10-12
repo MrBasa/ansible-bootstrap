@@ -57,14 +57,19 @@ sudo pacman -Syu --needed ansible-core git
 
 This command is the same for all systems. It pulls the playbook from this repository and runs it locally to configure the system.
 
+**Step 1: Bootstrap Ansible Dependencies**
 ```bash
-sudo ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i inventory bootstrap-ansible.yml
-sudo ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i inventory core-utilities.yml
+sudo ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git bootstrap-ansible.yml
 # Or for SSH authentication:
-sudo ansible-pull -U git@github.com/mrbasa/ansible-bootstrap.git -i inventory bootstrap-ansible.yml
-sudo ansible-pull -U git@github.com:mrbasa/ansible-bootstrap.git -i inventory core-utilities.yml
+sudo ansible-pull -U git@github.com/mrbasa/ansible-bootstrap.git bootstrap-ansible.yml
 ```
 
+**Step 2: Run the Main Playbook**
+```bash
+sudo ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git core-utilities.yml
+# Or for SSH authentication:
+sudo ansible-pull -U git@github.com/mrbasa/ansible-bootstrap.git core-utilities.yml
+```
 ***Note:***
 `[WARNING]: Could not match supplied host pattern, ignoring: {HOSTNAME}`
 This warning is harmless. By default, ansible-pull tries to find a playbook to run against a host with the same name as the machine's hostname. However, because the playbook specifies hosts: localhost, it overrides this behavior.
