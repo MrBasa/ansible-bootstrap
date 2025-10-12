@@ -40,7 +40,7 @@
 
     arch_official_packages:
       - 7zip
-      - ttf-firacode
+      - ttf-firacode-nerd
       - chezmoi
 
     # --- AUR-Only Packages (for Arch Linux) ---
