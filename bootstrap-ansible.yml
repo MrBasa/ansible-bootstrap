@@ -1,16 +1,21 @@
 # bootstrap-ansible.yml
-# This playbook MUST be run first. Its only job is to install the Ansible collections
-# needed by the main playbook.
+# This playbook installs the Ansible collections required by the main playbook.
+# It is designed to run on a minimal 'ansible-core' installation.
 - name: "Bootstrap Ansible dependencies"
   hosts: localhost
   connection: local
 
+  vars:
+    # Define the path where collections are installed for the user running the playbook
+    galaxy_collection_path: "{{ ansible_env.HOME }}/.ansible/collections/ansible_collections"
+
   tasks:
     - name: "Install required Ansible collections"
       become: yes
-      ansible.builtin.ansible_galaxy_collection:
-        name: "{{ item }}"
-        state: present
+      ansible.builtin.command: "ansible-galaxy collection install {{ item }}"
+      args:
+        # This prevents re-installing a collection that already exists, making the task idempotent.
+        creates: "{{ galaxy_collection_path }}/{{ item | replace('.', '/') }}"
       loop:
         - community.general
         - community.aur
