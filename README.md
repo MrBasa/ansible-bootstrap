@@ -54,10 +54,8 @@ sudo pacman -Syu --needed ansible-core git
 
 ### Step 2: Run the Playbook
 
-This command is the same for all systems. It pulls the playbook from this repository and runs it locally to configure your system.
-
-**Important:** Replace `your-username` with your actual GitHub username.
+This command is the same for all systems. It pulls the playbook from this repository and runs it locally to configure the system.
 
 ```bash
-sudo ansible-pull -U [https://github.com/your-username/ansible-bootstrap.git](https://github.com/your-username/ansible-bootstrap.git)
+sudo ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git
 ```
