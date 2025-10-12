@@ -78,7 +78,7 @@
     - name: "Install AUR Packages (Arch only)"
       become: yes
       become_user: "{{ bootstrap_user }}"
-      community.aur.aur:
+      kewlfft.aur.aur:
         name: "{{ arch_aur_packages }}"
         state: present
       when: ansible_os_family == "Archlinux"
