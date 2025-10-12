@@ -9,14 +9,14 @@
     galaxy_collections_path: "{{ ansible_env.HOME }}/.ansible/collections/ansible_collections"
 
   tasks:
-  - name: "Ensure collection directories are removed before cloning"
-    become: yes
+    - name: "Ensure collection directories are removed before cloning"
+      become: yes
       ansible.builtin.file:
         path: "{{ item }}"
         state: absent
       loop:
-          - "{{ galaxy_collections_path }}/community/general"
-          - "{{ galaxy_collections_path }}/kewlfft/aur"
+        - "{{ galaxy_collections_path }}/community/general"
+        - "{{ galaxy_collections_path }}/kewlfft/aur"
 
     - name: "Install community.general collection via git"
       become: yes
