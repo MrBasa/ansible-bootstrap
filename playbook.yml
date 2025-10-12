@@ -6,12 +6,10 @@
   vars:
     # --- Common Packages (identical names across all distros) ---
     common_packages:
-      - fish
-      - lsd
       - git
       - curl
-      - figlet
-      - cow
+      - fish
+      - lsd
       - bat # Installs the binary as 'batcat' in Debian
       - fzf
       - zoxide
@@ -21,6 +19,9 @@
       - tealdeer
       - btop
       - micro
+      - thefuck
+      - figlet
+      - cow
       - fortune-mod # Base for fortunes
 
     # --- Distro-Specific Packages ---
