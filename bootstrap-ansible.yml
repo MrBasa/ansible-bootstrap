@@ -1,6 +1,4 @@
 # bootstrap-ansible.yml
-# This playbook installs required Ansible collections, bypassing the Galaxy
-# resolver for the problematic community.aur collection.
 - name: "Bootstrap Ansible dependencies"
   hosts: localhost
   connection: local
@@ -14,15 +12,11 @@
       become: yes
       ansible.builtin.command: "ansible-galaxy collection install community.general"
       args:
-        # Prevents re-running if the collection is already installed
         creates: "{{ galaxy_collections_path }}/community/general"
 
-    - name: "Install community.aur collection via git clone"
+    - name: "Install AUR collection via git from the correct URL"
       become: yes
       ansible.builtin.git:
-        repo: 'https://github.com/ansible-collections/community.aur.git'
-        dest: "{{ galaxy_collections_path }}/community/aur"
+        repo: 'https://github.com/kewlfft/ansible-aur.git'
+        dest: "{{ galaxy_collections_path }}/kewlfft/aur"
         version: main
-      environment:
-        https_proxy: ""
-        HTTPS_PROXY: ""
