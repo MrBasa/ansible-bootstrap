@@ -29,6 +29,7 @@ This playbook installs the following software:
 | **`figlet`** | [figlet.org](http://www.figlet.org/) | A program for making large letters out of ordinary text. |
 | **`cowsay`** | [Wikipedia](https://en.wikipedia.org/wiki/Cowsay) | A program that generates ASCII art pictures of a cow with a message. |
 | **`fortune`** | N/A | A program that displays a random, often humorous, adage. |
+| **`7zip`** | [7Zip](https://7-zip.org/support.html) | A file archiver with a high compression ratio. |
 ---
 
 ## Usage on a New Machine
@@ -58,4 +59,10 @@ This command is the same for all systems. It pulls the playbook from this reposi
 
 ```bash
 sudo ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git
+# Or for SSH authentication:
+sudo ansible-pull -U git@github.com:mrbasa/ansible-bootstrap.git
 ```
+
+***Note:***
+`[WARNING]: Could not match supplied host pattern, ignoring: {HOSTNAME}`
+This warning is harmless. By default, ansible-pull tries to find a playbook to run against a host with the same name as your machine's hostname. However, because the playbook specifies hosts: localhost, it overrides this behavior.
