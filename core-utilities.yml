@@ -1,4 +1,4 @@
-# playbook.yml
+# core-utilities.yml
 - name: "Bootstrap a new Linux environment (Debian/Fedora/Arch)"
   hosts: localhost
   connection: local
@@ -50,41 +50,40 @@
       - anarchism
 
   tasks:
-    # === INSTALL ANSIBLE DEPENDENCIES ===
-    - name: "Install yay: AUR helper (Arch only)"
-      block:
-        - name: "Install build tools"
-          become: yes
-          community.general.pacman:
-            name:
-              - base-devel
-              - git
-            state: present
+    # --- Official Package Installation ---
+    - name: "Update package cache and install packages (Debian)"
+      become: yes
+      ansible.builtin.apt:
+        name: "{{ common_packages + debian_packages }}"
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "Debian"
 
-        - name: "Clone yay repository"
-          ansible.builtin.git:
-            repo: 'https://aur.archlinux.org/yay.git'
-            dest: "/tmp/yay"
+    - name: "Install packages (Fedora)"
+      become: yes
+      ansible.builtin.dnf:
+        name: "{{ common_packages + fedora_packages }}"
+        state: present
+      when: ansible_os_family == "RedHat"
 
-        - name: "Build and install yay"
-          become: yes
-          become_user: "{{ bootstrap_user }}"
-          ansible.builtin.shell: "makepkg -si --noconfirm"
-          args:
-            chdir: "/tmp/yay"
-            creates: /usr/bin/yay
+    - name: "Install Official Packages (Arch)"
+      become: yes
+      community.general.pacman:
+        name: "{{ common_packages + arch_official_packages }}"
+        state: present
+        update_cache: yes
       when: ansible_os_family == "Archlinux"
 
-    - name: "Install AUR Packages with yay (Arch only)"
-          become: yes
-          become_user: "{{ bootstrap_user }}"
-          ansible.builtin.shell:
-            cmd: "yay -S --noconfirm --needed {{ arch_aur_packages | join(' ') }}"
-          register: aur_install_result
-          changed_when: "'there is nothing to do' not in aur_install_result.stdout"
-          when: ansible_os_family == "Archlinux"
+    # --- AUR Package Installation ---
+    - name: "Install AUR Packages (Arch only)"
+      become: yes
+      become_user: "{{ bootstrap_user }}"
+      community.aur.aur:
+        name: "{{ arch_aur_packages }}"
+        state: present
+      when: ansible_os_family == "Archlinux"
 
-    # --- System-Wide Configuration & Tools ---
+    # --- System-Wide Configuration ---
     - name: "Link batcat to bat (Debian only)"
       become: yes
       ansible.builtin.file:
