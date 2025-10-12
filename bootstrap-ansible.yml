@@ -8,6 +8,15 @@
     # Define the base path where Ansible looks for collections
     galaxy_collections_path: "{{ ansible_env.HOME }}/.ansible/collections/ansible_collections"
 
+  - name: "Ensure collection directories are removed before cloning"
+      become: yes
+        ansible.builtin.file:
+          path: "{{ item }}"
+          state: absent
+      loop:
+          - "{{ galaxy_collections_path }}/community/general"
+          - "{{ galaxy_collections_path }}/kewlfft/aur"
+
   tasks:
     - name: "Install community.general collection via git"
       become: yes
