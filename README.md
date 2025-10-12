@@ -65,4 +65,4 @@ sudo ansible-pull -U git@github.com:mrbasa/ansible-bootstrap.git
 
 ***Note:***
 `[WARNING]: Could not match supplied host pattern, ignoring: {HOSTNAME}`
-This warning is harmless. By default, ansible-pull tries to find a playbook to run against a host with the same name as your machine's hostname. However, because the playbook specifies hosts: localhost, it overrides this behavior.
+This warning is harmless. By default, ansible-pull tries to find a playbook to run against a host with the same name as the machine's hostname. However, because the playbook specifies hosts: localhost, it overrides this behavior.
