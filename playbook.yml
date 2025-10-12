@@ -29,6 +29,7 @@
 
     # --- Distro-Specific Packages (Official Repositories Only) ---
     debian_packages:
+      - 7zip
       - fonts-firacode
       - fortune-anarchism
       - anarchism
@@ -38,6 +39,7 @@
       - chezmoi
 
     arch_official_packages:
+      - 7zip
       - ttf-firacode
       - chezmoi
 
