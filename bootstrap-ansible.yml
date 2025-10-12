@@ -19,4 +19,4 @@
       ansible.builtin.git:
         repo: 'https://github.com/kewlfft/ansible-aur.git'
         dest: "{{ galaxy_collections_path }}/kewlfft/aur"
-        version: main
+        version: master
