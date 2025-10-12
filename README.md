@@ -57,14 +57,14 @@ sudo pacman -Syu --needed ansible-core git
 
 This command is the same for all systems. It pulls the playbook from this repository and runs it locally to configure the system.
 
-**Step 1: Bootstrap Ansible Dependencies**
+**Step 2.1: Bootstrap Ansible Dependencies**
 ```bash
 sudo ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git bootstrap-ansible.yml
 # Or for SSH authentication:
 sudo ansible-pull -U git@github.com/mrbasa/ansible-bootstrap.git bootstrap-ansible.yml
 ```
 
-**Step 2: Run the Main Playbook**
+**Step 2.2: Run the Main Playbook**
 ```bash
 sudo ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git core-utilities.yml
 # Or for SSH authentication:
