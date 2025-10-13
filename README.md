@@ -34,7 +34,7 @@ This playbook installs the following software:
 
 ## Usage on a New Machine
 
-Runs the playbooks as your user and handles privilege escalation.
+This is a simpler, more robust method that runs the playbooks as your user and handles privilege escalation correctly. **No special `sudoers` files are required.**
 
 ### Step 1: Install Dependencies & Clone Repo
 
@@ -43,23 +43,16 @@ Runs the playbooks as your user and handles privilege escalation.
 # Install Ansible and Git
 sudo apt update && sudo apt install -y ansible-core git  # For Debian/Ubuntu
 sudo dnf install -y ansible-core git                     # For Fedora
-sudo pacman -Syu --needed ansible-core git               # For Arch
+sudo pacman -Syu --needed ansible-core git base-devel    # For Arch
 
 # Clone this repository
 git clone [https://github.com/mrbasa/ansible-bootstrap.git](https://github.com/mrbasa/ansible-bootstrap.git)
 cd ansible-bootstrap
 ```
+*Note for Arch users: The `base-devel` package group is required to build AUR packages.*
 
-### Step 2: Prepare for AUR (Arch Linux Only)
-If you are on Arch Linux or an Arch-based distro, you must enable passwordless `sudo` for your user to allow for non-interactive AUR package installation.
-
-```bash
-# (Run from inside the cloned repository directory)
-sudo ./set_sudoers.sh add
-```
-
-### Step 3: Run the Playbooks
-You will be prompted for your `sudo` password once at the beginning of each playbook run.
+### Step 2: Run the Playbooks
+You will be prompted for your `sudo` password at the beginning of each playbook run. This password is then used by Ansible for any tasks that require root privileges.
 
 ```bash
 # Run the collection bootstrapper
@@ -67,10 +60,4 @@ ansible-playbook --ask-become-pass bootstrap-ansible.yml
 
 # Run the main utilities installer
 ansible-playbook --ask-become-pass core-utilities.yml
-```
-
-### Step 4: Cleanup (Arch Linux Only)
-After the playbooks have successfully completed, it is recommended to remove the passwordless `sudo` rule.
-```bash
-sudo ./set_sudoers.sh remove
 ```
