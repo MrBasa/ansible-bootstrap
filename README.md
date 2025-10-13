@@ -36,7 +36,7 @@ This playbook installs the following software:
 
 This is the first step in setting up a new environment. Run the appropriate command for your OS to install the dependencies, then run the `ansible-pull` command to execute the playbook.
 
-### Step 1: Install Dependencies
+### Step 1: Install Dependencies & Prepare
 
 **On Debian/Ubuntu:**
 ```bash
@@ -50,7 +50,13 @@ sudo dnf install -y ansible-core git
 
 **On Arch Linux / EndeavourOS:**
 ```bash
+# 1. Install dependencies
 sudo pacman -Syu --needed ansible-core git
+
+# 2. Add passwordless pacman access for Ansible AUR automation.
+#    This is required for the playbook to run non-interactively.
+#    (Assumes set_sudoers.sh is in your current directory)
+sudo ./set_sudoers.sh add
 ```
 
 ### Step 2: Run the Playbook
@@ -59,17 +65,23 @@ This command is the same for all systems. It pulls the playbook from this reposi
 
 **Step 2.1: Bootstrap Ansible Dependencies**
 ```bash
-sudo ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git bootstrap-ansible.yml
+sudo ansible-pull -U [https://github.com/mrbasa/ansible-bootstrap.git](https://github.com/mrbasa/ansible-bootstrap.git) bootstrap-ansible.yml
 # Or for SSH authentication:
 sudo ansible-pull -U git@github.com/mrbasa/ansible-bootstrap.git bootstrap-ansible.yml
 ```
 
 **Step 2.2: Run the Main Playbook**
 ```bash
-sudo ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git core-utilities.yml
+sudo ansible-pull -U [https://github.com/mrbasa/ansible-bootstrap.git](https://github.com/mrbasa/ansible-bootstrap.git) core-utilities.yml
 # Or for SSH authentication:
 sudo ansible-pull -U git@github.com/mrbasa/ansible-bootstrap.git core-utilities.yml
 ```
 ***Note:***
 `[WARNING]: Could not match supplied host pattern, ignoring: {HOSTNAME}`
 This warning is harmless. By default, ansible-pull tries to find a playbook to run against a host with the same name as the machine's hostname. However, because the playbook specifies hosts: localhost, it overrides this behavior.
+
+### Step 3: Cleanup (Arch Linux Only)
+After the playbooks have successfully completed, it is recommended to remove the passwordless `sudo` rule.
+```bash
+sudo ./set_sudoers.sh remove
+```

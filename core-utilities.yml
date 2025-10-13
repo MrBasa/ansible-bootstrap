@@ -49,6 +49,26 @@
       - fortune-mod-anarchism
       - anarchism
 
+  pre_tasks:
+    - name: "Pre-flight check for passwordless sudo on Arch Linux"
+      when: ansible_os_family == "Archlinux"
+      block:
+        - name: "Check if user '{{ bootstrap_user }}' can run pacman without a password"
+          become: yes
+          become_user: "{{ bootstrap_user }}"
+          ansible.builtin.command: "sudo -n /usr/bin/pacman -Syu"
+          register: sudo_check
+          changed_when: false
+          ignore_errors: true
+
+        - name: "Fail if passwordless sudo for pacman is not configured"
+          when: sudo_check.rc != 0
+          ansible.builtin.fail:
+            msg:
+              - "User '{{ bootstrap_user }}' does not have passwordless sudo access for pacman."
+              - "This is required for non-interactive AUR package installation."
+              - "Please run 'sudo ./set_sudoers.sh add {{ bootstrap_user }}' before executing this playbook."
+
   tasks:
     # --- Official Package Installation ---
     - name: "Update package cache and install packages (Debian)"
