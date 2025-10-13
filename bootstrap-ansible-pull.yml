@@ -2,6 +2,8 @@
 - name: "Bootstrap Ansible and run core utilities"
   hosts: localhost
   connection: local
+  environment:
+      ANSIBLE_NOCOWS: "1"
 
   vars:
     common_packages:
@@ -102,6 +104,34 @@
         update_cache: yes
       when: ansible_os_family == "Archlinux"
 
+    # --- Install yay AUR helper (Arch only) ---
+    - name: "Install yay AUR helper"
+      become: yes
+      become_user: "{{ ansible_user_id }}"
+      ansible.builtin.shell:
+        cmd: |
+          if ! command -v yay &> /dev/null; then
+            git clone https://aur.archlinux.org/yay.git /tmp/yay
+            cd /tmp/yay
+            makepkg -si --noconfirm
+          fi
+      args:
+        executable: /bin/bash
+      when: ansible_os_family == "Archlinux"
+      environment:
+        HOME: "/home/{{ ansible_user_id }}"
+
+    # --- Configure yay to not use sudo ---
+    - name: "Configure yay to not use sudo"
+      become: yes
+      become_user: "{{ ansible_user_id }}"
+      ansible.builtin.lineinfile:
+        path: "/home/{{ ansible_user_id }}/.config/yay/config.json"
+        regexp: '"sudo":'
+        line: '  "sudo": false,'
+        create: yes
+      when: ansible_os_family == "Archlinux"
+
     # --- Fixed AUR Installation ---
     - name: "Install AUR packages with yay (Arch)"
       become: yes
@@ -111,6 +141,7 @@
       when: ansible_os_family == "Archlinux"
       environment:
         HOME: "/home/{{ ansible_user_id }}"
+        SUDO_ASKPASS: "/bin/false"
 
     # --- Post-installation fixes ---
     - name: "Link batcat to bat on Debian systems"
@@ -121,6 +152,7 @@
         state: link
       when: ansible_os_family == "Debian"
 
+    # --- Manual installs ---
     - name: "Install Chezmoi via official script"
       become: yes
       ansible.builtin.shell: |
