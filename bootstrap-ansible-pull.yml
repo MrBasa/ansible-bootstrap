@@ -1,6 +1,53 @@
+# bootstrap-ansible-pull.yml
 - name: "Bootstrap Ansible and run core utilities"
   hosts: localhost
   connection: local
+
+  # Packages
+  vars:
+    common_packages:
+      - git
+      - curl
+      - fish
+      - lsd
+      - bat
+      - fzf
+      - zoxide
+      - duf
+      - mc
+      - entr
+      - tealdeer
+      - btop
+      - micro
+      - thefuck
+      - figlet
+      - cowsay
+      - fortune-mod
+
+    debian_packages:
+      - batcat
+      - 7zip
+      - fonts-firacode
+      - fortune-anarchism
+      - anarchism
+
+    fedora_packages:
+      - bat
+      - 7zip
+      - cascadia-code-nf-fonts
+      - chezmoi
+
+    arch_packages:
+      - bat
+      - 7zip
+      - ttf-firacode-nerd
+      - chezmoi
+      - base-devel
+      - git
+
+    arch_aur_packages:
+      - fortune-mod-anarchism
+      - anarchism
 
   tasks:
     - name: "Install ansible-core if not present"
@@ -32,5 +79,53 @@
       args:
         creates: "{{ ansible_env.HOME }}/.ansible/collections/ansible_collections/community/general"
 
-    - name: "Run core utilities playbook"
-      ansible.builtin.include_tasks: core-utilities.yml
+    # Include ALL the core-utilities tasks directly here
+    - name: "Install common packages"
+      become: yes
+      ansible.builtin.apt:
+        name: "{{ common_packages + debian_packages }}"
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+
+    - name: "Install packages (Fedora)"
+      become: yes
+      ansible.builtin.dnf:
+        name: "{{ common_packages + fedora_packages }}"
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: "Install official packages (Arch)"
+      become: yes
+      community.general.pacman:
+        name: "{{ common_packages + arch_packages }}"
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "Archlinux"
+
+    - name: "Install AUR packages with yay (Arch)"
+      become: yes
+      become_user: "{{ ansible_user_id }}"
+      community.general.pacman:
+        name: "{{ arch_aur_packages }}"
+        state: present
+        executable: yay
+      when: ansible_os_family == "Archlinux"
+      environment:
+        HOME: "/home/{{ ansible_user_id }}"
+
+    - name: "Link batcat to bat on Debian systems"
+      become: yes
+      ansible.builtin.file:
+        src: /usr/bin/batcat
+        dest: /usr/local/bin/bat
+        state: link
+      when: ansible_os_family == "Debian"
+
+    - name: "Install Chezmoi via official script"
+      become: yes
+      ansible.builtin.shell: |
+        sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /usr/local/bin
+      args:
+        creates: /usr/local/bin/chezmoi
+      when: ansible_os_family != "Archlinux"
