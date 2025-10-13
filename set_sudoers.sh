@@ -41,6 +41,12 @@ case "$1" in
         ;;
 esac
 
+# Ensure the script is run as root for file operations
+if [[ $EUID -ne 0 ]]; then
+   echo "Error: This script must be run as root. Please use sudo." >&2
+   exit 1
+fi
+
 # At this point, we expect 'add' or 'remove' as the first argument.
 ACTION=$1
 TARGET_USER=${2:-$SUDO_USER}
@@ -50,12 +56,6 @@ if [[ -z "$TARGET_USER" ]]; then
     echo "Error: Could not determine target user." >&2
     echo "Please specify a username or run with a standard sudo session." >&2
     exit 1
-fi
-
-# Ensure the script is run as root for file operations
-if [[ $EUID -ne 0 ]]; then
-   echo "Error: This script must be run as root. Please use sudo." >&2
-   exit 1
 fi
 
 SUDOERS_FILE="/etc/sudoers.d/10-ansible-nopasswd-for-${TARGET_USER}"
