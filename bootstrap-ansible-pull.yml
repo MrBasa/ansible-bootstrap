@@ -109,14 +109,14 @@
       become: yes
       become_user: "{{ ansible_user_id }}"
       ansible.builtin.shell:
-      cmd: |
-        if ! command -v yay >/dev/null; then
-          sudo pacman -S --noconfirm --needed git base-devel
-          cd /tmp
-          git clone https://aur.archlinux.org/yay.git
-          cd yay
-          makepkg -si --noconfirm
-        fi
+        cmd: |
+          if ! command -v yay >/dev/null; then
+            sudo pacman -S --noconfirm --needed git base-devel
+            cd /tmp
+            git clone https://aur.archlinux.org/yay.git
+            cd yay
+            makepkg -si --noconfirm
+          fi
       environment:
         HOME: "/home/{{ ansible_user_id }}"
     
