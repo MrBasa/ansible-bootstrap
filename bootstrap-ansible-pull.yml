@@ -1,9 +1,7 @@
 # bootstrap-ansible-pull.yml
-- name: "Bootstrap Ansible and run core utilities"
+- name: "Bootstrap Linux environment"
   hosts: localhost
   connection: local
-  environment:
-      ANSIBLE_NOCOWS: "1"
 
   vars:
     common_packages:
@@ -84,64 +82,53 @@
     - name: "Install packages (Debian/Ubuntu)"
       become: yes
       ansible.builtin.apt:
-        name: "{{ common_packages + debian_packages }}"
+        name: "{{ item }}"
         state: present
-        update_cache: yes
+      loop: "{{ common_packages + debian_packages }}"
       when: ansible_os_family == "Debian"
 
     - name: "Install packages (Fedora)"
       become: yes
       ansible.builtin.dnf:
-        name: "{{ common_packages + fedora_packages }}"
+        name: "{{ item }}"
         state: present
+      loop: "{{ common_packages + fedora_packages }}"
       when: ansible_os_family == "RedHat"
 
     - name: "Install official packages (Arch)"
       become: yes
-      community.general.pacman:
-        name: "{{ common_packages + arch_packages }}"
+      ansible.builtin.pacman:
+        name: "{{ item }}"
         state: present
-        update_cache: yes
+      loop: "{{ common_packages + arch_packages }}"
       when: ansible_os_family == "Archlinux"
 
-    # --- Install yay AUR helper (Arch only) ---
-    - name: "Install yay AUR helper"
+    # --- Simple AUR Installation ---
+    - name: "Install yay if missing"
+      when: ansible_os_family == "Archlinux"
       become: yes
       become_user: "{{ ansible_user_id }}"
       ansible.builtin.shell:
-        cmd: |
-          if ! command -v yay &> /dev/null; then
-            git clone https://aur.archlinux.org/yay.git /tmp/yay
-            cd /tmp/yay
-            makepkg -si --noconfirm
-          fi
-      args:
-        executable: /bin/bash
-      when: ansible_os_family == "Archlinux"
+      cmd: |
+        if ! command -v yay >/dev/null; then
+          sudo pacman -S --noconfirm --needed git base-devel
+          cd /tmp
+          git clone https://aur.archlinux.org/yay.git
+          cd yay
+          makepkg -si --noconfirm
+        fi
       environment:
         HOME: "/home/{{ ansible_user_id }}"
-
-    # --- Configure yay to not use sudo ---
-    - name: "Configure yay to not use sudo"
-      become: yes
-      become_user: "{{ ansible_user_id }}"
-      ansible.builtin.lineinfile:
-        path: "/home/{{ ansible_user_id }}/.config/yay/config.json"
-        regexp: '"sudo":'
-        line: '  "sudo": false,'
-        create: yes
+    
+    - name: "Install AUR packages individually"
       when: ansible_os_family == "Archlinux"
-
-    # --- Fixed AUR Installation ---
-    - name: "Install AUR packages with yay (Arch)"
       become: yes
       become_user: "{{ ansible_user_id }}"
       ansible.builtin.shell:
-        cmd: "yay -S --noconfirm --needed {{ arch_aur_packages | join(' ') }}"
-      when: ansible_os_family == "Archlinux"
+        cmd: "yay -S --noconfirm --needed {{ item }}"
+      loop: "{{ arch_aur_packages }}"
       environment:
         HOME: "/home/{{ ansible_user_id }}"
-        SUDO_ASKPASS: "/bin/false"
 
     # --- Post-installation fixes ---
     - name: "Link batcat to bat on Debian systems"
@@ -152,7 +139,6 @@
         state: link
       when: ansible_os_family == "Debian"
 
-    # --- Manual installs ---
     - name: "Install Chezmoi via official script"
       become: yes
       ansible.builtin.shell: |
