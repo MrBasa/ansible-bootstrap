@@ -1,35 +1,37 @@
 # bootstrap-ansible.yml
-# This playbook installs required Ansible collections directly from their git repos.
-- name: "Bootstrap Ansible dependencies"
+- name: "Bootstrap Ansible and run core utilities"
   hosts: localhost
   connection: local
 
-  vars:
-    # Define the base path where Ansible looks for collections
-    galaxy_collections_path: "{{ ansible_env.HOME }}/.ansible/collections/ansible_collections"
-
   tasks:
-    - name: "Ensure collection directories are removed before cloning"
+    - name: "Install ansible-core if not present"
       become: yes
-      ansible.builtin.file:
-        path: "{{ item }}"
-        state: absent
-      loop:
-        - "{{ galaxy_collections_path }}/community/general"
-        - "{{ galaxy_collections_path }}/kewlfft/aur"
+      block:
+        - name: "Install ansible-core (Debian)"
+          ansible.builtin.apt:
+            name: ansible-core
+            state: present
+            update_cache: yes
+          when: ansible_os_family == "Debian"
 
-    - name: "Install community.general collection via git"
-      become: yes
-      ansible.builtin.git:
-        repo: 'https://github.com/ansible-collections/community.general.git'
-        dest: "{{ galaxy_collections_path }}/community/general"
-        version: stable-9
-        force: yes # <-- Update repo if it already exists
+        - name: "Install ansible-core (Fedora)"
+          ansible.builtin.dnf:
+            name: ansible-core
+            state: present
+          when: ansible_os_family == "RedHat"
 
-    - name: "Install AUR collection via git"
-      become: yes
-      ansible.builtin.git:
-        repo: 'https://github.com/kewlfft/ansible-aur.git'
-        dest: "{{ galaxy_collections_path }}/kewlfft/aur"
-        version: master
-        force: yes # <-- For consistency and idempotency
+        - name: "Install ansible-core (Arch)"
+          ansible.builtin.pacman:
+            name: ansible-core
+            state: present
+            update_cache: yes
+          when: ansible_os_family == "Archlinux"
+
+    - name: "Install required collections"
+      ansible.builtin.command: >
+        ansible-galaxy collection install community.general
+      args:
+        creates: "{{ ansible_env.HOME }}/.ansible/collections/ansible_collections/community/general"
+
+    - name: "Run core utilities playbook"
+      ansible.builtin.include_tasks: core-utilities.yml

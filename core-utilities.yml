@@ -1,13 +1,9 @@
 # core-utilities.yml
-- name: "Bootstrap a new Linux environment (Debian/Fedora/Arch)"
+- name: "Bootstrap Linux environment (Debian/Fedora/Arch)"
   hosts: localhost
   connection: local
 
   vars:
-    # --- Automatically discover the user who ran the playbook ---
-    bootstrap_user: "{{ ansible_user_id }}"
-
-    # --- Packages with identical names across all distros ---
     common_packages:
       - git
       - curl
@@ -27,47 +23,34 @@
       - cowsay
       - fortune-mod
 
-    # --- Distro-Specific Packages (Official Repositories Only) ---
     debian_packages:
+      - batcat
       - 7zip
       - fonts-firacode
       - fortune-anarchism
       - anarchism
+
     fedora_packages:
+      - bat
+      - 7zip
       - cascadia-code-nf-fonts
       - chezmoi
-    arch_official_packages:
+
+    arch_packages:
+      - bat
       - 7zip
       - ttf-firacode-nerd
       - chezmoi
-      - base-devel # Required to build AUR packages
+      - base-devel
+      - git  # Ensure git is available for AUR
 
-    # --- AUR-Only Packages (for Arch Linux) ---
     arch_aur_packages:
       - fortune-mod-anarchism
       - anarchism
 
-  pre_tasks:
-    - name: "Pre-flight check for passwordless sudo on Arch Linux"
-      when: ansible_os_family == "Archlinux"
-      block:
-        - name: "Check if user '{{ bootstrap_user }}' has general passwordless sudo"
-          ansible.builtin.command: "sudo -n true"
-          register: sudo_check
-          changed_when: false
-          ignore_errors: true
-
-        - name: "Fail if general passwordless sudo is not configured"
-          when: sudo_check.rc != 0
-          ansible.builtin.fail:
-            msg:
-              - "User '{{ bootstrap_user }}' does not have general passwordless sudo access."
-              - "This is required for non-interactive AUR package installation."
-              - "Please run 'sudo ./set_sudoers.sh add' before executing this playbook."
-
   tasks:
-    # --- Official Package Installation (Requires privilege escalation) ---
-    - name: "Update package cache and install packages (Debian)"
+    # --- Package Installation ---
+    - name: "Install packages (Debian/Ubuntu)"
       become: yes
       ansible.builtin.apt:
         name: "{{ common_packages + debian_packages }}"
@@ -82,55 +65,28 @@
         state: present
       when: ansible_os_family == "RedHat"
 
-    - name: "Install Official Packages (Arch)"
+    - name: "Install official packages (Arch)"
       become: yes
       community.general.pacman:
-        name: "{{ common_packages + arch_official_packages }}"
+        name: "{{ common_packages + arch_packages }}"
         state: present
         update_cache: yes
       when: ansible_os_family == "Archlinux"
 
-    # --- AUR Package Installation (Arch Linux Only) ---
-    - name: "Build and install yay AUR helper"
-      when: ansible_os_family == "Archlinux"
-      block:
-        - name: "Clone yay repository"
-          ansible.builtin.git:
-            repo: https://aur.archlinux.org/yay.git
-            dest: "/home/{{ bootstrap_user }}/yay"
-            force: yes
-
-        - name: "Install yay's build dependencies"
-          become: yes
-          community.general.pacman:
-            name:
-              - go
-            state: present
-
-        - name: "Build yay package"
-          ansible.builtin.shell: "cd /home/{{ bootstrap_user }}/yay && makepkg --noconfirm"
-          args:
-            creates: "/home/{{ bootstrap_user }}/yay/yay-*.pkg.tar.zst"
-
-        - name: "Install built yay package"
-          become: yes
-          ansible.builtin.shell: "pacman -U --noconfirm /home/{{ bootstrap_user }}/yay/yay-*.pkg.tar.zst"
-          args:
-            creates: /usr/bin/yay
-
-    - name: "Install other AUR packages with yay"
-      # This task runs as the specified user, NOT as root.
-      # It relies on the passwordless sudoers file for yay to work.
+    # --- AUR Installation (Arch only) ---
+    - name: "Install AUR packages with yay (Arch)"
       become: yes
-      become_user: "{{ bootstrap_user }}"
+      become_user: "{{ ansible_user_id }}"
       community.general.pacman:
         name: "{{ arch_aur_packages }}"
         state: present
         executable: yay
       when: ansible_os_family == "Archlinux"
+      environment:
+        HOME: "/home/{{ ansible_user_id }}"
 
-    # --- System-Wide Configuration ---
-    - name: "Link batcat to bat (Debian only)"
+    # --- Post-installation fixes ---
+    - name: "Link batcat to bat on Debian systems"
       become: yes
       ansible.builtin.file:
         src: /usr/bin/batcat
@@ -138,9 +94,10 @@
         state: link
       when: ansible_os_family == "Debian"
 
-    - name: "Install Chezmoi via script (Debian only)"
+    - name: "Install Chezmoi via official script"
       become: yes
-      ansible.builtin.shell: 'sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /usr/local/bin'
+      ansible.builtin.shell: |
+        sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /usr/local/bin
       args:
         creates: /usr/local/bin/chezmoi
-      when: ansible_os_family == "Debian"
+      when: ansible_os_family != "Archlinux"  # Arch installs via pacman
