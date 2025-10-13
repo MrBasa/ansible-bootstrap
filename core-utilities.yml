@@ -52,7 +52,7 @@
       when: ansible_os_family == "Archlinux"
       block:
         - name: "Check if user '{{ bootstrap_user }}' has general passwordless sudo"
-          # This task does NOT use 'become'. It runs as the ansible_user_id.
+          # This task runs as the user invoking the playbook. No 'become' is needed.
           ansible.builtin.command: "sudo -n true"
           register: sudo_check
           changed_when: false
@@ -67,7 +67,7 @@
               - "Please run 'sudo ./set_sudoers.sh add {{ bootstrap_user }}' before executing this playbook."
 
   tasks:
-    # --- Official Package Installation ---
+    # --- Official Package Installation (Requires privilege escalation) ---
     - name: "Update package cache and install packages (Debian)"
       become: yes
       ansible.builtin.apt:
@@ -91,10 +91,11 @@
         update_cache: yes
       when: ansible_os_family == "Archlinux"
 
-    # --- AUR Package Installation (Arch Linux Only) ---
+    # --- AUR Package Installation (Runs as the normal user) ---
     - name: "Build and install yay AUR helper"
       when: ansible_os_family == "Archlinux"
-      # This block runs as the normal user, not root.
+      # This entire block runs as the user invoking the playbook.
+      # The internal 'makepkg' and 'yay' commands will use the passwordless sudo rule.
       block:
         - name: "Clone yay repository"
           ansible.builtin.git:
@@ -107,15 +108,13 @@
           args:
             creates: /usr/bin/yay
 
-    - name: "Install other AUR packages with yay"
-      become: yes
-      community.general.pacman:
-        name: "{{ arch_aur_packages }}"
-        state: present
-        executable: yay # Tell pacman module to use yay
-      when: ansible_os_family == "Archlinux"
+        - name: "Install other AUR packages with yay"
+          community.general.pacman:
+            name: "{{ arch_aur_packages }}"
+            state: present
+            executable: yay # Tell pacman module to use yay
 
-    # --- System-Wide Configuration ---
+    # --- System-Wide Configuration (Requires privilege escalation) ---
     - name: "Link batcat to bat (Debian only)"
       become: yes
       ansible.builtin.file:
