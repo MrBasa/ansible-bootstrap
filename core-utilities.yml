@@ -13,7 +13,7 @@
       - curl
       - fish
       - lsd
-      - bat # Name is consistent, executable is handled post-install
+      - bat
       - fzf
       - zoxide
       - duf
@@ -25,7 +25,7 @@
       - thefuck
       - figlet
       - cowsay
-      - fortune-mod # Base for fortunes
+      - fortune-mod
 
     # --- Distro-Specific Packages (Official Repositories Only) ---
     debian_packages:
@@ -33,19 +33,17 @@
       - fonts-firacode
       - fortune-anarchism
       - anarchism
-
     fedora_packages:
       - cascadia-code-nf-fonts
       - chezmoi
-
     arch_official_packages:
       - 7zip
       - ttf-firacode-nerd
       - chezmoi
+      - base-devel # Required to build AUR packages
 
     # --- AUR-Only Packages (for Arch Linux) ---
     arch_aur_packages:
-      - yay
       - fortune-mod-anarchism
       - anarchism
 
@@ -53,19 +51,19 @@
     - name: "Pre-flight check for passwordless sudo on Arch Linux"
       when: ansible_os_family == "Archlinux"
       block:
-        - name: "Check if user '{{ bootstrap_user }}' can run pacman without a password"
+        - name: "Check if user '{{ bootstrap_user }}' has general passwordless sudo"
           become: yes
           become_user: "{{ bootstrap_user }}"
-          ansible.builtin.command: "sudo -n --list /usr/bin/pacman"
+          ansible.builtin.command: "sudo -n true"
           register: sudo_check
           changed_when: false
           ignore_errors: true
 
-        - name: "Fail if passwordless sudo for pacman is not configured"
+        - name: "Fail if general passwordless sudo is not configured"
           when: sudo_check.rc != 0
           ansible.builtin.fail:
             msg:
-              - "User '{{ bootstrap_user }}' does not have passwordless sudo access for pacman."
+              - "User '{{ bootstrap_user }}' does not have general passwordless sudo access."
               - "This is required for non-interactive AUR package installation."
               - "Please run 'sudo ./set_sudoers.sh add {{ bootstrap_user }}' before executing this playbook."
 
@@ -94,13 +92,31 @@
         update_cache: yes
       when: ansible_os_family == "Archlinux"
 
-    # --- AUR Package Installation ---
-    - name: "Install AUR Packages (Arch only)"
+    # --- AUR Package Installation (Arch Linux Only) ---
+    - name: "Build and install yay AUR helper"
+      when: ansible_os_family == "Archlinux"
+      block:
+        - name: "Clone yay repository"
+          become: yes
+          become_user: "{{ bootstrap_user }}"
+          ansible.builtin.git:
+            repo: https://aur.archlinux.org/yay.git
+            dest: "/home/{{ bootstrap_user }}/yay"
+            force: yes
+
+        - name: "Build and install yay"
+          become: yes
+          become_user: "{{ bootstrap_user }}"
+          ansible.builtin.shell: "cd /home/{{ bootstrap_user }}/yay && makepkg -si --noconfirm"
+          args:
+            creates: /usr/bin/yay
+
+    - name: "Install other AUR packages with yay"
       become: yes
-      become_user: "{{ bootstrap_user }}"
-      kewlfft.aur.aur:
+      community.general.pacman:
         name: "{{ arch_aur_packages }}"
         state: present
+        executable: yay # Tell pacman module to use yay
       when: ansible_os_family == "Archlinux"
 
     # --- System-Wide Configuration ---

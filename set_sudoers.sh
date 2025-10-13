@@ -2,8 +2,8 @@
 #
 # set_sudoers.sh
 #
-# Adds or removes a sudoers file allowing a user to run pacman without a password.
-# This is a common requirement for Ansible automation on Arch Linux.
+# Adds or removes a sudoers file allowing a user to run ALL sudo commands
+# without a password. This simplifies non-interactive Ansible automation.
 #
 # Defaults to the user who invoked sudo if <username> is omitted.
 #
@@ -16,7 +16,7 @@ set -o pipefail # Return the exit status of the last command in a pipeline that 
 display_help() {
     echo "Usage: sudo $0 [COMMAND] [<username>]"
     echo
-    echo "This script manages a sudoers file to allow passwordless pacman execution for a user."
+    echo "This script manages a sudoers file for general passwordless sudo execution."
     echo
     echo "Commands:"
     echo "  add      Adds the sudoers rule for the specified or current user."
@@ -44,7 +44,6 @@ esac
 # At this point, we expect 'add' or 'remove' as the first argument.
 ACTION=$1
 TARGET_USER=${2:-$SUDO_USER}
-SUDOERS_FILE="/etc/sudoers.d/10-ansible-pacman-for-${TARGET_USER}"
 
 # Final check to ensure we have a target user
 if [[ -z "$TARGET_USER" ]]; then
@@ -59,16 +58,19 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
+SUDOERS_FILE="/etc/sudoers.d/10-ansible-nopasswd-for-${TARGET_USER}"
+
 case "$ACTION" in
     add)
-        echo "-> Adding passwordless pacman access for user: ${TARGET_USER}"
-        echo "${TARGET_USER} ALL=(ALL) NOPASSWD: /usr/bin/pacman" > "${SUDOERS_FILE}"
+        echo "-> Adding general passwordless sudo access for user: ${TARGET_USER}"
+        # This rule grants passwordless sudo for ALL commands
+        echo "${TARGET_USER} ALL=(ALL) NOPASSWD: ALL" > "${SUDOERS_FILE}"
         chmod 440 "${SUDOERS_FILE}"
         echo "-> Successfully created ${SUDOERS_FILE}"
         ;;
 
     remove)
-        echo "-> Removing passwordless pacman access for user: ${TARGET_USER}"
+        echo "-> Removing general passwordless sudo access for user: ${TARGET_USER}"
         if [[ -f "${SUDOERS_FILE}" ]]; then
             rm -f "${SUDOERS_FILE}"
             echo "-> Successfully removed ${SUDOERS_FILE}"
