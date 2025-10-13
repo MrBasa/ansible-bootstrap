@@ -3,7 +3,6 @@
   hosts: localhost
   connection: local
 
-  # Packages
   vars:
     common_packages:
       - git
@@ -79,8 +78,8 @@
       args:
         creates: "{{ ansible_env.HOME }}/.ansible/collections/ansible_collections/community/general"
 
-    # Include ALL the core-utilities tasks directly here
-    - name: "Install common packages"
+    # --- Package Installation ---
+    - name: "Install packages (Debian/Ubuntu)"
       become: yes
       ansible.builtin.apt:
         name: "{{ common_packages + debian_packages }}"
@@ -103,17 +102,17 @@
         update_cache: yes
       when: ansible_os_family == "Archlinux"
 
+    # --- Fixed AUR Installation ---
     - name: "Install AUR packages with yay (Arch)"
       become: yes
       become_user: "{{ ansible_user_id }}"
-      community.general.pacman:
-        name: "{{ arch_aur_packages }}"
-        state: present
-        executable: yay
+      ansible.builtin.shell:
+        cmd: "yay -S --noconfirm --needed {{ arch_aur_packages | join(' ') }}"
       when: ansible_os_family == "Archlinux"
       environment:
         HOME: "/home/{{ ansible_user_id }}"
 
+    # --- Post-installation fixes ---
     - name: "Link batcat to bat on Debian systems"
       become: yes
       ansible.builtin.file:
