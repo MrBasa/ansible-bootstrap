@@ -56,7 +56,7 @@
         - name: "Check if user '{{ bootstrap_user }}' can run pacman without a password"
           become: yes
           become_user: "{{ bootstrap_user }}"
-          ansible.builtin.command: "sudo -n /usr/bin/pacman -Syu"
+          ansible.builtin.command: "sudo -n --list /usr/bin/pacman"
           register: sudo_check
           changed_when: false
           ignore_errors: true
