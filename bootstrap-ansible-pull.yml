@@ -24,20 +24,17 @@
       - fortune-mod
 
     debian_packages:
-      - batcat
       - 7zip
       - fonts-firacode
       - fortune-anarchism
       - anarchism
 
     fedora_packages:
-      - bat
       - 7zip
       - cascadia-code-nf-fonts
       - chezmoi
 
     arch_packages:
-      - bat
       - 7zip
       - ttf-firacode-nerd
       - chezmoi
