@@ -1,6 +1,6 @@
 # Ansible Bootstrap
 
-This repository contains an Ansible playbook to bootstrap a new Linux machine (Debian, Fedora, or Arch-based). It installs a common set of development tools and prepares the system for personal dotfile management with Chezmoi.
+This repository contains Ansible playbooks to bootstrap a new Linux machine (Debian, Fedora, or Arch-based). It installs a common set of development tools and prepares the system for personal dotfile management with Chezmoi.
 
 ---
 
@@ -34,54 +34,42 @@ This playbook installs the following software:
 
 ## Usage on a New Machine
 
-This is the first step in setting up a new environment. Run the appropriate command for your OS to install the dependencies, then run the `ansible-pull` command to execute the playbook.
+Runs the playbooks as your user and handles privilege escalation.
 
-### Step 1: Install Dependencies & Prepare
+### Step 1: Install Dependencies & Clone Repo
 
-**On Debian/Ubuntu:**
+**On all systems:**
 ```bash
-sudo apt update && sudo apt install -y ansible-core git
+# Install Ansible and Git
+sudo apt update && sudo apt install -y ansible-core git  # For Debian/Ubuntu
+sudo dnf install -y ansible-core git                     # For Fedora
+sudo pacman -Syu --needed ansible-core git               # For Arch
+
+# Clone this repository
+git clone [https://github.com/mrbasa/ansible-bootstrap.git](https://github.com/mrbasa/ansible-bootstrap.git)
+cd ansible-bootstrap
 ```
 
-**On Fedora:**
-```bash
-sudo dnf install -y ansible-core git
-```
+### Step 2: Prepare for AUR (Arch Linux Only)
+If you are on Arch Linux or an Arch-based distro, you must enable passwordless `sudo` for your user to allow for non-interactive AUR package installation.
 
-**On Arch Linux / EndeavourOS:**
 ```bash
-# 1. Install dependencies
-sudo pacman -Syu --needed ansible-core git
-
-# 2. Add passwordless pacman access for Ansible AUR automation.
-#    This is required for the playbook to run non-interactively and if user is not already a passwordless, the following script will add them.
-wget https://raw.githubusercontent.com/MrBasa/ansible-bootstrap/main/set_sudoers.sh
-chmod a+x ./set_sudoers.sh
+# (Run from inside the cloned repository directory)
 sudo ./set_sudoers.sh add
 ```
 
-### Step 2: Run the Playbook
+### Step 3: Run the Playbooks
+You will be prompted for your `sudo` password once at the beginning of each playbook run.
 
-This command is the same for all systems. It pulls the playbook from this repository and runs it locally to configure the system.
-
-**Step 2.1: Bootstrap Ansible Dependencies**
 ```bash
-sudo ansible-pull -U [https://github.com/mrbasa/ansible-bootstrap.git](https://github.com/mrbasa/ansible-bootstrap.git) bootstrap-ansible.yml
-# Or for SSH authentication:
-sudo ansible-pull -U git@github.com/mrbasa/ansible-bootstrap.git bootstrap-ansible.yml
+# Run the collection bootstrapper
+ansible-playbook --ask-become-pass bootstrap-ansible.yml
+
+# Run the main utilities installer
+ansible-playbook --ask-become-pass core-utilities.yml
 ```
 
-**Step 2.2: Run the Main Playbook**
-```bash
-sudo ansible-pull -U [https://github.com/mrbasa/ansible-bootstrap.git](https://github.com/mrbasa/ansible-bootstrap.git) core-utilities.yml
-# Or for SSH authentication:
-sudo ansible-pull -U git@github.com/mrbasa/ansible-bootstrap.git core-utilities.yml
-```
-***Note:***
-`[WARNING]: Could not match supplied host pattern, ignoring: {HOSTNAME}`
-This warning is harmless. By default, ansible-pull tries to find a playbook to run against a host with the same name as the machine's hostname. However, because the playbook specifies hosts: localhost, it overrides this behavior.
-
-### Step 3: Cleanup (Arch Linux Only)
+### Step 4: Cleanup (Arch Linux Only)
 After the playbooks have successfully completed, it is recommended to remove the passwordless `sudo` rule.
 ```bash
 sudo ./set_sudoers.sh remove

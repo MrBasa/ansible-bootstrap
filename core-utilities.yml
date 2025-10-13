@@ -4,8 +4,8 @@
   connection: local
 
   vars:
-    # --- Automatically discover the user who ran the 'sudo' command ---
-    bootstrap_user: "{{ ansible_env.SUDO_USER | default(ansible_user_id) }}"
+    # --- Automatically discover the user who ran the playbook ---
+    bootstrap_user: "{{ ansible_user_id }}"
 
     # --- Packages with identical names across all distros ---
     common_packages:
@@ -52,8 +52,7 @@
       when: ansible_os_family == "Archlinux"
       block:
         - name: "Check if user '{{ bootstrap_user }}' has general passwordless sudo"
-          become: yes
-          become_user: "{{ bootstrap_user }}"
+          # This task does NOT use 'become'. It runs as the ansible_user_id.
           ansible.builtin.command: "sudo -n true"
           register: sudo_check
           changed_when: false
@@ -95,18 +94,15 @@
     # --- AUR Package Installation (Arch Linux Only) ---
     - name: "Build and install yay AUR helper"
       when: ansible_os_family == "Archlinux"
+      # This block runs as the normal user, not root.
       block:
         - name: "Clone yay repository"
-          become: yes
-          become_user: "{{ bootstrap_user }}"
           ansible.builtin.git:
             repo: https://aur.archlinux.org/yay.git
             dest: "/home/{{ bootstrap_user }}/yay"
             force: yes
 
         - name: "Build and install yay"
-          become: yes
-          become_user: "{{ bootstrap_user }}"
           ansible.builtin.shell: "cd /home/{{ bootstrap_user }}/yay && makepkg -si --noconfirm"
           args:
             creates: /usr/bin/yay
