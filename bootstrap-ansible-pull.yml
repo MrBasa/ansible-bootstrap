@@ -117,10 +117,9 @@
       environment:
         HOME: "/home/{{ ansible_user_id }}"
     
-    - name: "Install AUR packages individually"
+    - name: "Install AUR packages individually as current user"
       when: ansible_os_family == "Archlinux"
-      become: yes
-      become_user: "{{ ansible_user_id }}"
+      # Notice: no 'become: yes' here
       ansible.builtin.shell:
         cmd: "yay -S --noconfirm --needed {{ item }}"
       loop: "{{ arch_aur_packages }}"
