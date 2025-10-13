@@ -83,29 +83,36 @@
             dest: "/home/{{ bootstrap_user }}/yay"
             force: yes
 
-        - name: "Build yay package"
-          # This runs as the normal user
-          ansible.builtin.shell: "cd /home/{{ bootstrap_user }}/yay && makepkg -s --noconfirm"
+        - name: "Install yay's build dependencies"
+          # This runs as root BEFORE the build step
+          become: yes
+          community.general.pacman:
+            name:
+              - go
+            state: present
+
+        - name: "Build yay package as user"
+          # This runs as the normal user; the '-s' flag is removed
+          ansible.builtin.shell: "cd /home/{{ bootstrap_user }}/yay && makepkg --noconfirm"
           args:
-            # Find the generated package file to know if build is needed
+            # Check for the generated package file to know if the build is needed
             creates: "/home/{{ bootstrap_user }}/yay/yay-*.pkg.tar.zst"
 
-        - name: "Install yay package"
-          become: yes # This runs as root
+        - name: "Install built yay package as root"
+          # This runs as root
+          become: yes
           ansible.builtin.shell: "pacman -U --noconfirm /home/{{ bootstrap_user }}/yay/yay-*.pkg.tar.zst"
           args:
             creates: /usr/bin/yay
 
     - name: "Install other AUR packages with yay"
-      # This entire task now runs as the normal user.
-      # `yay` will invoke `sudo` internally, and Ansible will supply the password
-      # provided with --ask-become-pass.
+      # This task runs as the user. 'yay' will correctly use the 'become' password
+      # for the final installation step.
       become: yes
       community.general.pacman:
         name: "{{ arch_aur_packages }}"
         state: present
         executable: yay
-
       when: ansible_os_family == "Archlinux"
 
     # --- System-Wide Configuration ---

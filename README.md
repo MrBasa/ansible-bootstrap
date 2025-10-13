@@ -34,7 +34,7 @@ This playbook installs the following software:
 
 ## Usage on a New Machine
 
-This is a simpler, more robust method that runs the playbooks as your user and handles privilege escalation correctly. **No special `sudoers` files are required.**
+This is the final, simplified method that runs the playbooks as your user and handles privilege escalation correctly. **No special `sudoers` files are required.**
 
 ### Step 1: Install Dependencies & Clone Repo
 
