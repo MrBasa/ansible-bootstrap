@@ -56,6 +56,7 @@ sudo pacman -Syu --needed ansible-core git
 # 2. Add passwordless pacman access for Ansible AUR automation.
 #    This is required for the playbook to run non-interactively and if user is not already a passwordless, the following script will add them.
 wget https://raw.githubusercontent.com/MrBasa/ansible-bootstrap/main/set_sudoers.sh
+chmod a+x ./set_sudoers.sh
 sudo ./set_sudoers.sh add
 ```
 
