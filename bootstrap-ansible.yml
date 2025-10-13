@@ -1,37 +1,34 @@
 # bootstrap-ansible.yml
-- name: "Bootstrap Ansible and run core utilities"
+- name: "Bootstrap Ansible and dependencies"
   hosts: localhost
   connection: local
 
   tasks:
-    - name: "Install ansible-core if not present"
+    - name: "Install ansible-core (Debian)"
       become: yes
-      block:
-        - name: "Install ansible-core (Debian)"
-          ansible.builtin.apt:
-            name: ansible-core
-            state: present
-            update_cache: yes
-          when: ansible_os_family == "Debian"
+      ansible.builtin.apt:
+        name: ansible-core
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "Debian"
 
-        - name: "Install ansible-core (Fedora)"
-          ansible.builtin.dnf:
-            name: ansible-core
-            state: present
-          when: ansible_os_family == "RedHat"
+    - name: "Install ansible-core (Fedora)"
+      become: yes
+      ansible.builtin.dnf:
+        name: ansible-core
+        state: present
+      when: ansible_os_family == "RedHat"
 
-        - name: "Install ansible-core (Arch)"
-          ansible.builtin.pacman:
-            name: ansible-core
-            state: present
-            update_cache: yes
-          when: ansible_os_family == "Archlinux"
+    - name: "Install ansible-core (Arch)"
+      become: yes
+      community.general.pacman:
+        name: ansible-core
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "Archlinux"
 
-    - name: "Install required collections"
+    - name: "Install community.general collection"
       ansible.builtin.command: >
         ansible-galaxy collection install community.general
       args:
         creates: "{{ ansible_env.HOME }}/.ansible/collections/ansible_collections/community/general"
-
-    - name: "Run core utilities playbook"
-      ansible.builtin.include_tasks: core-utilities.yml
