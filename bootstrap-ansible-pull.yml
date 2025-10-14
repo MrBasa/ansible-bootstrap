@@ -2,6 +2,8 @@
 - name: "Bootstrap Linux environment"
   hosts: localhost
   connection: local
+  # Suppress Python warnings
+  gather_facts: false
 
   vars:
     common_packages:
@@ -46,30 +48,8 @@
       - anarchism
 
   tasks:
-    - name: "Install ansible-core if not present"
-      become: yes
-      block:
-        - name: "Install ansible-core (Debian)"
-          ansible.builtin.apt:
-            name: ansible-core
-            state: present
-            update_cache: yes
-          when: ansible_os_family == "Debian"
-
-        - name: "Install ansible-core (Fedora)"
-          ansible.builtin.dnf:
-            name: ansible-core
-            state: present
-          when: ansible_os_family == "RedHat"
-
-        - name: "Install ansible-core (Arch)"
-          ansible.builtin.pacman:
-            name: ansible-core
-            state: present
-            update_cache: yes
-          when: ansible_os_family == "Archlinux"
-
-    - name: "Install required collections"
+    # --- Ansible Dependencies ---
+    - name: "Install required Ansible collections"
       ansible.builtin.command: >
         ansible-galaxy collection install community.general
       args:
@@ -108,7 +88,7 @@
       ansible.builtin.shell:
         cmd: |
           if ! command -v yay >/dev/null; then
-            sudo pacman -S --noconfirm --needed git base-devel
+            pacman -S --noconfirm --needed git base-devel
             cd /tmp
             git clone https://aur.archlinux.org/yay.git
             cd yay

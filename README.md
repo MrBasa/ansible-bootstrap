@@ -49,15 +49,11 @@ sudo pacman -Syu --needed ansible-core git base-devel    # For Arch
 git clone [https://github.com/mrbasa/ansible-bootstrap.git](https://github.com/mrbasa/ansible-bootstrap.git)
 cd ansible-bootstrap
 ```
-*Note for Arch users: The `base-devel` package group is required to build AUR packages.*
+*Note for Arch: The `base-devel` package group is required to build AUR packages.*
 
 ### Step 2: Run the Playbooks
 You will be prompted for your `sudo` password at the beginning of each playbook run. This password is then used by Ansible for any tasks that require root privileges.
 
 ```bash
-# Run the collection bootstrapper
-ansible-playbook --ask-become-pass bootstrap-ansible.yml
-
-# Run the main utilities installer
-ansible-playbook --ask-become-pass core-utilities.yml
+ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i localhost, bootstrap-ansible-pull.yml -K
 ```
