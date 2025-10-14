@@ -126,15 +126,15 @@
         shell: /bin/bash
       when: ansible_os_family == "Archlinux"
 
-    - name: "Create remote_tmp directory for aur_builder"
-      ansible.builtin.file:
-        path: /home/aur_builder/.ansible/tmp
-        state: directory
-        mode: '0700'
-        owner: aur_builder
-        group: aur_builder
-      become: yes
-      when: ansible_os_family == "Archlinux"
+    # - name: "Create remote_tmp directory for aur_builder"
+    #   ansible.builtin.file:
+    #     path: /home/aur_builder/.ansible/tmp
+    #     state: directory
+    #     mode: '0700'
+    #     owner: aur_builder
+    #     group: aur_builder
+    #   become: yes
+    #   when: ansible_os_family == "Archlinux"
 
     - name: "Allow aur_builder to run pacman without a password"
       become: yes
