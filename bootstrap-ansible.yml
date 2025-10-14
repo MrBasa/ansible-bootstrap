@@ -4,29 +4,6 @@
   connection: local
 
   tasks:
-    - name: "Install ansible-core (Debian)"
-      become: yes
-      ansible.builtin.apt:
-        name: ansible-core
-        state: present
-        update_cache: yes
-      when: ansible_os_family == "Debian"
-
-    - name: "Install ansible-core (Fedora)"
-      become: yes
-      ansible.builtin.dnf:
-        name: ansible-core
-        state: present
-      when: ansible_os_family == "RedHat"
-
-    - name: "Install ansible-core (Arch)"
-      become: yes
-      community.general.pacman:
-        name: ansible-core
-        state: present
-        update_cache: yes
-      when: ansible_os_family == "Archlinux"
-
     - name: "Install community.general collection"
       ansible.builtin.command: >
         ansible-galaxy collection install community.general
