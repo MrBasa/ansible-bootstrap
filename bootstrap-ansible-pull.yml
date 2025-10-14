@@ -4,7 +4,7 @@
   connection: local
   # Suppress Python warnings.
   # 'ansible_env' will NOT be available to playbook.
-  gather_facts: false
+  #gather_facts: false
 
   vars:
     common_packages:

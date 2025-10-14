@@ -55,5 +55,6 @@ cd ansible-bootstrap
 You will be prompted for your `sudo` password at the beginning of each playbook run. This password is then used by Ansible for any tasks that require root privileges.
 
 ```bash
+curl -sSL https://raw.githubusercontent.com/mrbasa/ansible-bootstrap/main/bootstrap.sh | bash
 ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i localhost, bootstrap-ansible-pull.yml -K
 ```
