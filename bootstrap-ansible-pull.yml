@@ -2,7 +2,8 @@
 - name: "Bootstrap Linux environment"
   hosts: localhost
   connection: local
-  # Suppress Python warnings
+  # Suppress Python warnings.
+  # 'ansible_env' will NOT be available to playbook.
   gather_facts: false
 
   vars:
@@ -53,7 +54,7 @@
       ansible.builtin.command: >
         ansible-galaxy collection install community.general
       args:
-        creates: "{{ ansible_env.HOME }}/.ansible/collections/ansible_collections/community/general"
+        creates: "/home/{{ ansible_user_id }}/.ansible/collections/ansible_collections/community/general"
 
     # --- Package Installation ---
     - name: "Install packages (Debian/Ubuntu)"
