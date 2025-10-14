@@ -100,7 +100,7 @@
       loop: "{{ common_packages + arch_packages }}"
       when: ansible_os_family == "Archlinux"
 
-    # --- Simple AUR Installation ---
+    # --- AUR Setup & Installation (Arch only) ---
     - name: "Install yay if missing"
       when: ansible_os_family == "Archlinux"
       become: yes
@@ -117,7 +117,6 @@
       environment:
         HOME: "/home/{{ ansible_user_id }}"
 
-    # --- AUR Setup & Installation (Arch only) ---
     - name: "Create a dedicated user for AUR builds"
       become: yes
       ansible.builtin.user:
@@ -125,6 +124,16 @@
         state: present
         create_home: yes
         shell: /bin/bash
+      when: ansible_os_family == "Archlinux"
+
+    - name: "Create remote_tmp directory for aur_builder"
+      ansible.builtin.file:
+        path: /home/aur_builder/.ansible/tmp
+        state: directory
+        mode: '0700'
+        owner: aur_builder
+        group: aur_builder
+      become: yes
       when: ansible_os_family == "Archlinux"
 
     - name: "Allow aur_builder to run pacman without a password"
