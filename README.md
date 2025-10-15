@@ -1,11 +1,7 @@
 # Ansible Bootstrap
-
 This repository contains Ansible playbooks to bootstrap a new Linux machine (Debian, Fedora, or Arch-based). It installs a common set of development tools and prepares the system for personal dotfile management with Chezmoi.
 
----
-
 ## Software Installed
-
 This playbook installs the following software:
 
 | Tool | Project Homepage | Description |
@@ -30,37 +26,37 @@ This playbook installs the following software:
 | **`cowsay`** | [Wikipedia](https://en.wikipedia.org/wiki/Cowsay) | A program that generates ASCII art pictures of a cow with a message. |
 | **`fortune`** | N/A | A program that displays a random, often humorous, adage. |
 | **`7zip`** | [7Zip](https://7-zip.org/support.html) | A file archiver with a high compression ratio. |
----
 
 ## Usage on a New Machine
 
-This is the final, simplified method that runs the playbooks as your user and handles privilege escalation correctly. **No special `sudoers` files are required.**
-
-### Step 1: Install Dependencies & Clone Repo
-
-**On all systems:**
+### Step 1: Install Core Dependencies - Ansible & Git
+#### For Debian/Ubuntu:
 ```bash
-# Install Ansible and Git
-sudo apt update && sudo apt install -y ansible-core git  # For Debian/Ubuntu
-sudo dnf install -y ansible-core git                     # For Fedora
-sudo pacman -Syu --needed ansible-core git base-devel    # For Arch
-
-# Clone this repository
-git clone [https://github.com/mrbasa/ansible-bootstrap.git](https://github.com/mrbasa/ansible-bootstrap.git)
-cd ansible-bootstrap
+sudo apt update && sudo apt install -y ansible-core git
+```
+#### For Fedora:
+```bash
+sudo dnf install -y ansible-core git
+```
+#### For Arch:
+```bash
+sudo pacman -Syu --needed ansible-core git base-devel
 ```
 *Note for Arch: The `base-devel` package group is required to build AUR packages.*
 
-### Step 2: Run the Playbooks
-You will be prompted for your `sudo` password at the beginning of each playbook run. This password is then used by Ansible for any tasks that require root privileges.
-
+### Step 2: Install Ansible Dependencies
 ```bash
-curl -sSL https://raw.githubusercontent.com/mrbasa/ansible-bootstrap/main/bootstrap.sh | bash
+curl -sSL https://raw.githubusercontent.com/mrbasa/ansible-bootstrap/main/bootstrap-ansible.sh | bash
+```
+
+### Step 3: Run the Playbook
+You will be prompted for your `sudo` password at the beginning of each playbook run. This password is then used by Ansible for any tasks that require root privileges.
+```bash
 ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i localhost, playbook-common-tools.yml -K
 ```
----
-' Development Environment Playbook
 
+---
+# Development Environment Playbook
 An optional Ansible playbook to set up a customizable development environment after the core system bootstrap. Only installs what you need.
 
 ## Quick Start
