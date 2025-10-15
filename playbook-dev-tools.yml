@@ -1,5 +1,10 @@
 # dev-environment.yml
-- name: "Setup Development Environment"
+# Check Ansible dependencies.
+- name: "Include Ansible Dependencies"
+  import_playbook: playbook-ansible-dependencies.yml
+
+# Dev Tools Playbook
+- name: "Bootstrap Linux Environment - Development Tools"
   hosts: localhost
   connection: local
   gather_facts: true
@@ -10,7 +15,7 @@
     databases: []
     ides: []
     
-    # Version defaults (use latest stable where possible)
+    # Version defaults
     python_version: "3.11"
     node_version: "20"
     go_version: "latest"
@@ -50,6 +55,7 @@
       - zoxide
       - micro
       - helix
+      # TODO: Separate many of these.
       - docker
       - docker-compose
       - podman

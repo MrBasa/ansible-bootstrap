@@ -56,7 +56,7 @@ You will be prompted for your `sudo` password at the beginning of each playbook 
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/mrbasa/ansible-bootstrap/main/bootstrap.sh | bash
-ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i localhost, bootstrap-ansible-pull.yml -K
+ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i localhost, playbook-common-tools.yml -K
 ```
 ---
 ' Development Environment Playbook

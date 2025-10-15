@@ -1,5 +1,10 @@
 # playbook-common-tools.yml
-- name: "Bootstrap Linux environment"
+# Check Ansible dependencies.
+- name: "Include Ansible Dependencies"
+  import_playbook: playbook-ansible-dependencies.yml
+
+# Common Tools Playbook
+- name: "Bootstrap Linux Environment - Common Tools"
   hosts: localhost
   connection: local
   # Suppress Python warnings.
