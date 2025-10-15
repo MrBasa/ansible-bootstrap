@@ -62,53 +62,53 @@ An optional Ansible playbook to set up a customizable development environment af
 ## Quick Start
 
 ### Run with only common development tools (default)
-'''bash
+```bash
 ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i localhost, dev-environment.yml -K
-'''
+```
 
 ### Run with specific languages
-'''bash
+```bash
 ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i localhost, dev-environment.yml -K --extra-vars [double_quote]languages=['python','go','rust'][double_quote]
-'''
+```
 
 ### Run with specific databases
-'''bash
+```bash
 ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i localhost, dev-environment.yml -K --extra-vars [double_quote]databases=['postgresql','redis'][double_quote]
-'''
+```
 
 ### Full custom installation
-'''bash
+```bash
 ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i localhost, dev-environment.yml -K --extra-vars [double_quote]languages=['python','nodejs'] databases=['postgresql'] ides=['vscodium'][double_quote]
-'''
+```
 
 ## Configuration Options
 
 ### Method 1: Command Line Variables
 
 #### Install Python, Go, and Rust
-'''bash
+```bash
 ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i localhost, dev-environment.yml -K --extra-vars [double_quote]languages=['python','go','rust'][double_quote]
-'''
+```
 
 #### Install with specific databases
-'''bash
+```bash
 ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i localhost, dev-environment.yml -K --extra-vars [double_quote]databases=['postgresql','redis'][double_quote]
-'''
+```
 
 #### Install specific IDEs
-'''bash
+```bash
 ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i localhost, dev-environment.yml -K --extra-vars [double_quote]ides=['vscodium','neovim'][double_quote]
-'''
+```
 
 #### Version pinning
-'''bash
+```bash
 ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i localhost, dev-environment.yml -K --extra-vars [double_quote]python_version=3.11 node_version=20[double_quote]
-'''
+```
 
 ### Method 2: Configuration File
 
 Create 'dev-config.yml':
-'''yaml
+```yaml
 languages:
   - python
   - go
@@ -121,12 +121,12 @@ ides:
   - neovim
 python_version: [double_quote]3.11[double_quote]
 node_version: [double_quote]20[double_quote]
-'''
+```
 
 Then run:
-'''bash
+```bash
 ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i localhost, dev-environment.yml -K --extra-vars [double_quote]@dev-config.yml[double_quote]
-'''
+```
 
 ## Available Components
 
@@ -288,7 +288,7 @@ When you opt into a database, you get:
 ## Directory Structure
 
 Creates an organized workspace:
-'''
+```
 ~/dev/
 ├── python/
 ├── go/
@@ -297,7 +297,7 @@ Creates an organized workspace:
 ├── dotnet/
 ├── docker/
 └── databases/
-'''
+```
 
 ## Requirements
 
@@ -310,19 +310,19 @@ Creates an organized workspace:
 ### Tags for Selective Execution
 
 #### Install only common tools
-'''bash
+```bash
 ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i localhost, dev-environment.yml -K --tags common
-'''
+```
 
 #### Install only Python environment
-'''bash
+```bash
 ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i localhost, dev-environment.yml -K --tags python
-'''
+```
 
 #### Install only databases
-'''bash
+```bash
 ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i localhost, dev-environment.yml -K --tags databases
-'''
+```
 
 ### Potential Issues
 
