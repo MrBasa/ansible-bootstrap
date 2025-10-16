@@ -1,12 +1,197 @@
 # Ansible Bootstrap
 
-This repository contains Ansible playbooks to bootstrap a new Linux machine (Debian, Fedora, or Arch-based). It installs a common set of development tools and prepares the system for personal dotfile management with Chezmoi.
+This repository contains Ansible playbooks to bootstrap a new Linux machine (Debian, Fedora, or Arch-based). It provides a modular system for installing development tools and environments through configuration-driven playbooks.
 
 ---
 
-## Software Installed
+## New Playbook Architecture
 
-This playbook installs the following software:
+### Core Playbooks
+
+| Playbook | Purpose | Dependencies |
+|----------|---------|--------------|
+| `playbook_ansible-dependencies.yml` | Installs required Ansible collections and AUR setup | None |
+| `playbook_common-tools.yml` | Installs common productivity tools and utilities | `playbook_ansible-dependencies.yml` |
+| `playbook_dev-tools.yml` | Installs development tools and environments (configuration-driven) | `playbook_ansible-dependencies.yml`, `config_dev-tools.yml` |
+| `playbook_package-managers.yml` | Universal package installer (used by other playbooks) | `playbook_ansible-dependencies.yml` |
+
+### Configuration
+- `config_dev-tools.yml` - Defines package groups and individual packages with rich metadata
+
+---
+
+## Quick Start
+
+### Step 1: Install Dependencies & Clone Repo
+
+"On all systems:"
+```bash
+# Install Ansible and Git
+sudo apt update && sudo apt install -y ansible-core git  # For Debian/Ubuntu
+sudo dnf install -y ansible-core git                     # For Fedora
+sudo pacman -Syu --needed ansible-core git base-devel    # For Arch
+
+# Clone this repository
+git clone https://github.com/mrbasa/ansible-bootstrap.git
+cd ansible-bootstrap
+```
+*Note for Arch: The `base-devel` package group is required to build AUR packages.*
+
+### Step 2: Run the Playbooks
+
+"Install common productivity tools:"
+```bash
+ansible-playbook playbook_common-tools.yml -K
+```
+
+"Install development environment (default: common-dev-tools + language-servers):"
+```bash
+ansible-playbook playbook_dev-tools.yml -K
+```
+
+"Install specific development groups:"
+```bash
+ansible-playbook playbook_dev-tools.yml -K -e '{"languages": ["python-dev", "rust-dev"], "databases": ["postgresql"]}'
+```
+
+---
+
+## Development Environment Playbook
+
+The `playbook_dev-tools.yml` uses a configuration-driven approach where you specify which package groups to install. Packages are defined individually and can belong to multiple groups without duplication - the playbook automatically handles duplicate package installation.
+
+### Available Package Groups
+
+| Category | Group | Description |
+|----------|-------|-------------|
+| "Core" | `common-dev-tools` | Essential development tools (git, compilers, editors) |
+| "Core" | `language-servers` | LSP servers for enhanced editor support |
+| "Core" | `linters` | Code linting and formatting tools |
+| "Containers" | `container-podman` | Podman container toolkit (daemonless) |
+| "Containers" | `container-docker` | Docker container platform |
+| "Infrastructure" | `infrastructure-tools` | Kubernetes, Helm, Terraform |
+| "Languages" | `python-dev` | Python development environment |
+| "Languages" | `go-dev` | Go development environment |
+| "Languages" | `rust-dev` | Rust development environment |
+| "Languages" | `nodejs-dev` | Node.js development environment |
+| "Databases" | `postgresql` | PostgreSQL server and tools |
+| "Databases" | `redis` | Redis in-memory data store |
+| "Databases" | `sqlite` | SQLite embedded database |
+
+### Usage Examples
+
+"Install only common development tools and language servers (default):"
+```bash
+ansible-playbook playbook_dev-tools.yml -K
+```
+
+"Install Python and PostgreSQL:"
+```bash
+ansible-playbook playbook_dev-tools.yml -K -e '{"languages": ["python-dev"], "databases": ["postgresql"]}'
+```
+
+"Install multiple languages with infrastructure tools:"
+```bash
+ansible-playbook playbook_dev-tools.yml -K -e '{"languages": ["python-dev", "go-dev", "nodejs-dev"], "infrastructure": ["infrastructure-tools"]}'
+```
+
+"Install everything:"
+```bash
+ansible-playbook playbook_dev-tools.yml -K -e '{"languages": ["python-dev", "go-dev", "rust-dev", "nodejs-dev"], "databases": ["postgresql", "redis", "sqlite"], "containers": ["container-podman"], "infrastructure": ["infrastructure-tools"], "linters": ["linters"]}'
+```
+
+---
+
+## Package Details
+
+### Common Development Tools (common-dev-tools group)
+- "Version Control:" Git
+- "Build Tools:" GNU Make, CMake, GCC, Clang, LLVM, pkg-config
+- "Editors:" VSCodium, Neovim, Helix Editor
+
+### Language Servers (language-servers group)
+- "C/C++:" Clangd
+- "Rust:" Rust Analyzer
+- "Go:" gopls
+- "Python:" Python LSP Server
+- "TypeScript/JavaScript:" TypeScript Language Server
+
+### Linters (linters group)
+- "Python:" Black, Flake8, Mypy
+- "JavaScript/TypeScript:" ESLint, Prettier
+
+### Container Tools
+- "Podman Group:" Podman, Buildah, Skopeo
+- "Docker Group:" Docker, Docker Compose
+
+### Infrastructure Tools
+- "Kubernetes:" kubectl, Helm
+- "Infrastructure as Code:" Terraform
+
+### Language Environments
+
+#### Python Development (python-dev group)
+- "Core:" Python 3, pip, virtual environments, development headers
+- "Testing:" Pytest
+- "Database GUI:" DBeaver
+
+#### Go Development (go-dev group)
+- "Core:" Go compiler
+- "Debugging:" Delve
+- "Database GUI:" DBeaver
+
+#### Rust Development (rust-dev group)
+- "Toolchain:" Rustup, Cargo
+- "Database GUI:" DBeaver
+
+#### Node.js Development (nodejs-dev group)
+- "Runtime:" Node.js, npm
+- "Language:" TypeScript
+- "Database GUI:" DBeaver
+
+### Database Systems
+
+#### PostgreSQL (postgresql group)
+- "Server:" PostgreSQL
+- "Client:" PostgreSQL client tools
+- "GUI:" DBeaver
+
+#### Redis (redis group)
+- "Server:" Redis
+
+#### SQLite (sqlite group)
+- "Database:" SQLite
+- "GUI:" DBeaver
+
+---
+
+## Common Tools Playbook
+
+The `playbook_common-tools.yml` installs productivity and utility tools separately from development tools:
+
+### Software Installed
+
+| Tool | Description |
+|------|-------------|
+| "Fish Shell" | Smart and user-friendly command line shell |
+| "LSDeluxe" | Modern `ls` command with icons and colors |
+| "Bat" | `cat` clone with syntax highlighting and Git integration |
+| "FiraCode" | Monospaced font with programming ligatures |
+| "fzf" | General-purpose command-line fuzzy finder |
+| "zoxide" | Smarter `cd` command that learns your habits |
+| "duf" | Better `df` alternative for disk usage analysis |
+| "Midnight Commander" | Classic visual file manager |
+| "entr" | Runs arbitrary commands when files change |
+| "tealdeer" | Fast, Rust-based client for `tldr` pages |
+| "btop" | Modern and feature-rich resource monitor |
+| "micro" | Modern and intuitive terminal-based text editor |
+| "chezmoi" | Dotfile manager |
+| "yay" | AUR Helper for Arch-based systems |
+| "thefuck" | Corrects errors in previous console commands |
+| "figlet" | Program for making large letters out of ordinary text |
+| "cowsay" | Generates ASCII art pictures of a cow with a message |
+| "fortune" | Displays random, often humorous, adages |
+| "7zip" | File archiver with high compression ratio |
 
 | Tool | Project Homepage | Description |
 | :--- | :--- | :--- |
@@ -30,306 +215,73 @@ This playbook installs the following software:
 | **`cowsay`** | [Wikipedia](https://en.wikipedia.org/wiki/Cowsay) | A program that generates ASCII art pictures of a cow with a message. |
 | **`fortune`** | N/A | A program that displays a random, often humorous, adage. |
 | **`7zip`** | [7Zip](https://7-zip.org/support.html) | A file archiver with a high compression ratio. |
+
 ---
 
-## Usage on a New Machine
+## Important Notes
 
-This is the final, simplified method that runs the playbooks as your user and handles privilege escalation correctly. **No special `sudoers` files are required.**
+### Duplicate Package Handling
+The playbook automatically handles packages that appear in multiple selected groups. Each package is installed only once, regardless of how many groups reference it.
 
-### Step 1: Install Dependencies & Clone Repo
+### Language Server Support for Kate
+When you install the `language-servers` group, to use them with Kate:
 
-**On all systems:**
-```bash
-# Install Ansible and Git
-sudo apt update && sudo apt install -y ansible-core git  # For Debian/Ubuntu
-sudo dnf install -y ansible-core git                     # For Fedora
-sudo pacman -Syu --needed ansible-core git base-devel    # For Arch
+1. Open Kate
+2. Go to Settings '->' Configure Kate '->' Plugins
+3. Enable "LSP Client" plugin
+4. Restart Kate
+5. Go to Settings '->' Configure Kate '->' LSP Client
+6. The installed language servers should auto-configure for supported file types
 
-# Clone this repository
-git clone [https://github.com/mrbasa/ansible-bootstrap.git](https://github.com/mrbasa/ansible-bootstrap.git)
-cd ansible-bootstrap
-```
-*Note for Arch: The `base-devel` package group is required to build AUR packages.*
+### Platform Support
+- "Debian/Ubuntu:" All packages from official repositories
+- "Fedora/RedHat:" All packages from official repositories
+- "Arch Linux:" Official packages + AUR packages via dedicated `aur_builder` user
 
-### Step 2: Run the Playbooks
-You will be prompted for your `sudo` password at the beginning of each playbook run. This password is then used by Ansible for any tasks that require root privileges.
+### AUR Package Support
+For Arch Linux, the playbook creates a dedicated `aur_builder` user that handles AUR package installations securely without requiring password prompts for pacman.
 
-```bash
-curl -sSL https://raw.githubusercontent.com/mrbasa/ansible-bootstrap/main/bootstrap.sh | bash
-ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i localhost, playbook-common-tools.yml -K
-```
+### Error Handling
+The playbook provides detailed error messages for failed package installations, including:
+- Package name and description
+- Installer used
+- Specific error messages
+
+Failed package installations don't stop the entire process - they're reported with detailed information for troubleshooting.
+
 ---
-' Development Environment Playbook
-
-An optional Ansible playbook to set up a customizable development environment after the core system bootstrap. Only installs what you need.
-
-## Quick Start
-
-### Run with only common development tools (default)
-'''bash
-ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i localhost, dev-environment.yml -K
-'''
-
-### Run with specific languages
-'''bash
-ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i localhost, dev-environment.yml -K --extra-vars [double_quote]languages=['python','go','rust'][double_quote]
-'''
-
-### Run with specific databases
-'''bash
-ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i localhost, dev-environment.yml -K --extra-vars [double_quote]databases=['postgresql','redis'][double_quote]
-'''
-
-### Full custom installation
-'''bash
-ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i localhost, dev-environment.yml -K --extra-vars [double_quote]languages=['python','nodejs'] databases=['postgresql'] ides=['vscodium'][double_quote]
-'''
-
-## Configuration Options
-
-### Method 1: Command Line Variables
-
-#### Install Python, Go, and Rust
-'''bash
-ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i localhost, dev-environment.yml -K --extra-vars [double_quote]languages=['python','go','rust'][double_quote]
-'''
-
-#### Install with specific databases
-'''bash
-ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i localhost, dev-environment.yml -K --extra-vars [double_quote]databases=['postgresql','redis'][double_quote]
-'''
-
-#### Install specific IDEs
-'''bash
-ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i localhost, dev-environment.yml -K --extra-vars [double_quote]ides=['vscodium','neovim'][double_quote]
-'''
-
-#### Version pinning
-'''bash
-ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i localhost, dev-environment.yml -K --extra-vars [double_quote]python_version=3.11 node_version=20[double_quote]
-'''
-
-### Method 2: Configuration File
-
-Create 'dev-config.yml':
-'''yaml
-languages:
-  - python
-  - go
-  - nodejs
-databases:
-  - postgresql
-  - redis
-ides:
-  - vscodium
-  - neovim
-python_version: [double_quote]3.11[double_quote]
-node_version: [double_quote]20[double_quote]
-'''
-
-Then run:
-'''bash
-ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i localhost, dev-environment.yml -K --extra-vars [double_quote]@dev-config.yml[double_quote]
-'''
-
-## Available Components
-
-### Languages ('languages')
-
-| Language | Packages Included | Version Default |
-|----------|-------------------|-----------------|
-| 'python' | Python 3, pip, venv, pipx, poetry, pytest, black, flake8, mypy, pylint, jupyter, ipython | Latest stable |
-| 'go' | Go compiler, gopls, delve, golangci-lint, richgo, staticcheck | Latest stable |
-| 'nodejs' | Node.js, npm, yarn, pnpm, typescript, eslint, prettier, nodemon, ts-node | LTS |
-| 'rust' | Rust toolchain (rustup, cargo), rust-analyzer, clippy, rustfmt | Stable |
-| 'java' | OpenJDK, Maven, Gradle, Groovy | Latest LTS |
-| 'dotnet' | .NET SDK, ASP.NET Core runtime | Latest LTS |
-
-### Databases ('databases')
-
-| Database | Packages Included |
-|----------|-------------------|
-| 'postgresql' | PostgreSQL server, client, libpq, pgAdmin |
-| 'mysql' | MySQL server, client, MySQL Workbench |
-| 'sqlite' | SQLite, SQLite browser, SQLite utilities |
-| 'redis' | Redis server, redis-tools, redis-cli |
-| 'mongodb' | MongoDB server, mongosh, MongoDB Compass |
-
-### IDEs & Editors ('ides')
-
-| IDE/Editor | Packages Included |
-|------------|-------------------|
-| 'vscodium' | VSCodium (FOSS VS Code) with core extensions |
-| 'neovim' | Neovim with LSP support |
-| 'vim' | Vim with common plugins |
-| 'emacs' | Emacs with common packages |
-| 'jetbrains' | JetBrains Toolbox (AUR) |
-
-## What Gets Installed by Default
-
-### Common Development Tools (Always Installed)
-- **Build Tools**: make, cmake, ninja, gcc, g++, clang, llvm, pkg-config
-- **Version Control**: git (with sensible defaults)
-- **Code Analysis**: shellcheck, shfmt, universal-ctags, global, bear
-- **Containers**: docker, docker-compose, podman
-- **Cloud Tools**: kubectl, helm, terraform, aws-cli
-- **Editors**: micro, helix (modern terminal editors)
-- **Utilities**: jq, yq, htop, fzf, ripgrep, fd-find, bat, exa, dust
-
-### Language-Specific Additions
-
-When you opt into a language, you get:
-- **Core runtime/compiler**
-- **Package manager**
-- **Language server** (LSP)
-- **Debugger**
-- **Formatter & linter**
-- **Testing framework**
-- **Popular development tools**
-
-### Database-Specific Additions
-
-When you opt into a database, you get:
-- **Database server** (if applicable)
-- **Command-line client**
-- **Development libraries**
-- **GUI tools** (where available)
-
-## Package Inventory
-
-### Common Development Packages
-- **Build System**: 'make', 'cmake', 'ninja', 'autoconf', 'automake', 'libtool'
-- **Compilers**: 'gcc', 'g++', 'clang', 'llvm', 'lldb'
-- **Code Tools**: 'shellcheck', 'shfmt', 'universal-ctags', 'global', 'bear', 'codespell'
-- **Containers**: 'docker', 'docker-compose', 'podman', 'buildah', 'skopeo'
-- **Cloud Native**: 'kubectl', 'helm', 'terraform', 'aws-cli', 'google-cloud-sdk'
-- **Terminal Utilities**: 'jq', 'yq', 'htop', 'fzf', 'ripgrep', 'fd-find', 'bat', 'exa', 'dust', 'zoxide'
-- **Editors**: 'micro', 'helix'
-
-### Language Packages
-
-#### Python
-- **Core**: 'python3', 'python3-pip', 'python3-venv', 'python3-dev'
-- **Package Management**: 'pipx', 'poetry'
-- **Development**: 'pytest', 'black', 'flake8', 'mypy', 'pylint', 'isort', 'bandit', 'safety'
-- **Interactive**: 'ipython', 'jupyter', 'jupyterlab'
-- **Runtime Management**: 'pyenv'
-
-#### Go
-- **Core**: 'go', 'gopls'
-- **Development**: 'delve', 'golangci-lint', 'richgo', 'staticcheck'
-
-#### Node.js
-- **Core**: 'nodejs', 'npm', 'yarn', 'pnpm'
-- **Development**: 'typescript', 'eslint', 'prettier', 'nodemon', 'ts-node'
-- **Frameworks**: '@vue/cli', 'create-react-app', '@angular/cli'
-- **Runtime Management**: 'nvm'
-
-#### Rust
-- **Core**: 'rustup', 'cargo', 'rustc'
-- **Development**: 'rust-analyzer', 'clippy', 'rustfmt', 'cargo-watch'
-- **Tools**: Popular Rust development utilities
-
-#### Java
-- **Core**: 'jdk-openjdk', 'maven', 'gradle'
-- **Languages**: 'groovy', 'kotlin'
-- **Tools**: 'spring-boot-cli'
-
-#### .NET
-- **Core**: 'dotnet-sdk', 'aspnetcore-runtime'
-- **Tools**: 'dotnet-tools'
-
-### Database Packages
-
-#### PostgreSQL
-- **Server**: 'postgresql', 'postgresql-libs'
-- **Client**: 'postgresql-client', 'libpq-dev'
-- **GUI**: 'pgadmin4'
-
-#### MySQL
-- **Server**: 'mysql', 'mysql-server'
-- **Client**: 'mysql-client', 'libmysqlclient-dev'
-- **GUI**: 'mysql-workbench'
-
-#### SQLite
-- **Core**: 'sqlite', 'sqlite3'
-- **Tools**: 'sqlitebrowser', 'sqlite-utils'
-
-#### Redis
-- **Server**: 'redis', 'redis-server'
-- **Client**: 'redis-tools', 'redis-cli'
-
-#### MongoDB
-- **Server**: 'mongodb', 'mongodb-server'
-- **Client**: 'mongosh', 'mongo-tools'
-- **GUI**: 'mongodb-compass'
-
-### IDE Packages
-
-#### VSCodium
-- **Core**: 'vscodium'
-- **Extensions**: Python, Go, Rust, TypeScript, Docker, GitLens, YAML, Markdown
-
-#### Neovim
-- **Core**: 'neovim'
-- **LSP**: Language Server Protocol support
-
-#### Vim
-- **Core**: 'vim', 'vim-gtk' (for clipboard support)
-
-#### Emacs
-- **Core**: 'emacs', 'emacs-nox'
-
-#### JetBrains
-- **Tool**: 'jetbrains-toolbox' (AUR)
-
-## Platform Support
-
-- **Debian/Ubuntu**: All packages from official repositories
-- **Fedora**: All packages from official repositories  
-- **Arch Linux**: Official packages + AUR packages via yay
 
 ## Directory Structure
 
-Creates an organized workspace:
-'''
+Creates an organized development workspace:
+```
 ~/dev/
-├── python/
-├── go/
-├── rust/
-├── js/
-├── dotnet/
-├── docker/
-└── databases/
-'''
+[square bracket]single_quote[square bracket][square bracket]single_quote[square bracket] go/
+[square bracket]single_quote[square bracket][square bracket]single_quote[square bracket] rust/
+[square bracket]single_quote[square bracket][square bracket]single_quote[square bracket] python/
+[square bracket]single_quote[square bracket][square bracket]single_quote[square bracket] js/
+[square bracket]single_quote[square bracket][square bracket]single_quote[square bracket] docker/
+[square bracket]single_quote[square bracket][square bracket]single_quote[square bracket] databases/
+```
 
-## Requirements
-
-- Must be run after core bootstrap playbook
-- Requires sudo access
-- Internet connection for package downloads
+---
 
 ## Troubleshooting
 
-### Tags for Selective Execution
+### Package Installation Failures
+Check the detailed error messages that include:
+- Package name and description
+- Installer used (OS, pip, cargo, npm)
+- Specific error details
 
-#### Install only common tools
-'''bash
-ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i localhost, dev-environment.yml -K --tags common
-'''
+### AUR Build Issues
+- Ensure the `aur_builder` user exists (created by `playbook_ansible-dependencies.yml`)
+- Check disk space in `/tmp` for AUR builds
 
-#### Install only Python environment
-'''bash
-ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i localhost, dev-environment.yml -K --tags python
-'''
+### Language Server Configuration
+- Most editors auto-detect language servers
+- For Kate, ensure LSP Client plugin is enabled
+- Restart your editor after installing language servers
 
-#### Install only databases
-'''bash
-ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i localhost, dev-environment.yml -K --tags databases
-'''
-
-### Potential Issues
-
-- **AUR packages**: Ensure 'aur_builder' user exists from core bootstrap
-- **Disk space**: Full installation requires significant space
-- **Network timeouts**: Re-run playbook if downloads fail
+### Re-running Playbooks
+Playbooks are idempotent - they can be safely re-run to complete any failed installations or update existing packages.

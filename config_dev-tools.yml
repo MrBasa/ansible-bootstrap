@@ -1,0 +1,404 @@
+# config_dev-tools.yml
+packages:
+  # Core Development Tools (for common-dev-tools group)
+  git:
+    name: "Git"
+    package_name: "git"
+    description: "Distributed version control system"
+    installer: "os"
+
+  make:
+    name: "GNU Make"
+    package_name: "make"
+    description: "Build automation tool"
+    installer: "os"
+
+  cmake:
+    name: "CMake"
+    package_name: "cmake"
+    description: "Cross-platform build system generator"
+    installer: "os"
+
+  gcc:
+    name: "GCC"
+    package_name: "gcc"
+    description: "GNU Compiler Collection"
+    installer: "os"
+
+  clang:
+    name: "Clang"
+    package_name: "clang"
+    description: "C language family frontend for LLVM"
+    installer: "os"
+
+  llvm:
+    name: "LLVM"
+    package_name: "llvm"
+    description: "Collection of modular and reusable compiler and toolchain technologies"
+    installer: "os"
+
+  pkg_config:
+    name: "pkg-config"
+    package_name: "pkg-config"
+    description: "Helper tool used when compiling applications and libraries"
+    installer: "os"
+
+  # Editors & IDEs
+  vscodium:
+    name: "VSCodium"
+    package_name: "vscodium"
+    description: "Free/Libre Open Source Software Binaries of VSCode"
+    installer: "os"
+    os_specific:
+      Debian: "codium"
+      RedHat: "codium"
+      Archlinux: "vscodium-bin"
+
+  neovim:
+    name: "Neovim"
+    package_name: "neovim"
+    description: "Vim-fork focused on extensibility and usability"
+    installer: "os"
+
+  helix:
+    name: "Helix Editor"
+    package_name: "helix"
+    description: "Post-modern modal text editor"
+    installer: "os"
+
+  # Language Servers & Linters
+  clangd:
+    name: "Clangd"
+    package_name: "clangd"
+    description: "LLVM LSP-based C/C++ language server"
+    installer: "os"
+
+  rust_analyzer:
+    name: "Rust Analyzer"
+    package_name: "rust-analyzer"
+    description: "Rust language server for IDE features"
+    installer: "os"
+
+  gopls:
+    name: "Go Language Server"
+    package_name: "gopls"
+    description: "Official Go language server"
+    installer: "os"
+
+  python_lsp_server:
+    name: "Python LSP Server"
+    package_name: "python-lsp-server"
+    description: "Python language server for the Language Server Protocol"
+    installer: "pip"
+
+  typescript_language_server:
+    name: "TypeScript Language Server"
+    package_name: "typescript-language-server"
+    description: "TypeScript & JavaScript language server"
+    installer: "npm"
+
+  eslint:
+    name: "ESLint"
+    package_name: "eslint"
+    description: "JavaScript/TypeScript linting utility"
+    installer: "npm"
+
+  prettier:
+    name: "Prettier"
+    package_name: "prettier"
+    description: "Code formatter for JavaScript/TypeScript"
+    installer: "npm"
+
+  # Container Tools - Podman Group
+  podman:
+    name: "Podman"
+    package_name: "podman"
+    description: "Daemonless container engine for developing, managing, and running OCI containers"
+    installer: "os"
+
+  buildah:
+    name: "Buildah"
+    package_name: "buildah"
+    description: "Tool for building OCI container images"
+    installer: "os"
+
+  skopeo:
+    name: "Skopeo"
+    package_name: "skopeo"
+    description: "Tool for working with container images and image repositories"
+    installer: "os"
+
+  # Container Tools - Docker Group
+  docker:
+    name: "Docker"
+    package_name: "docker"
+    description: "Platform for developing, shipping, and running applications in containers"
+    installer: "os"
+
+  docker_compose:
+    name: "Docker Compose"
+    package_name: "docker-compose"
+    description: "Tool for defining and running multi-container Docker applications"
+    installer: "os"
+
+  # Infrastructure & Cloud
+  kubectl:
+    name: "Kubectl"
+    package_name: "kubectl"
+    description: "Kubernetes command-line tool"
+    installer: "os"
+
+  helm:
+    name: "Helm"
+    package_name: "helm"
+    description: "Kubernetes package manager"
+    installer: "os"
+
+  terraform:
+    name: "Terraform"
+    package_name: "terraform"
+    description: "Infrastructure as Code tool"
+    installer: "os"
+
+  # Python Development
+  python3:
+    name: "Python 3"
+    package_name: "python3"
+    description: "Python programming language interpreter"
+    installer: "os"
+
+  python_pip:
+    name: "Python Pip"
+    package_name: "python3-pip"
+    description: "Python package installer"
+    installer: "os"
+
+  python_venv:
+    name: "Python Virtual Environment"
+    package_name: "python3-venv"
+    description: "Python virtual environment support"
+    installer: "os"
+
+  python_dev:
+    name: "Python Development Headers"
+    package_name: "python3-dev"
+    description: "Header files and static library for Python"
+    installer: "os"
+
+  black:
+    name: "Black"
+    package_name: "black"
+    description: "Python code formatter"
+    installer: "pip"
+
+  flake8:
+    name: "Flake8"
+    package_name: "flake8"
+    description: "Python style guide enforcement"
+    installer: "pip"
+
+  mypy:
+    name: "Mypy"
+    package_name: "mypy"
+    description: "Optional static typing for Python"
+    installer: "pip"
+
+  pytest:
+    name: "Pytest"
+    package_name: "pytest"
+    description: "Python testing framework"
+    installer: "pip"
+
+  # Go Development
+  go:
+    name: "Go"
+    package_name: "go"
+    description: "Go programming language compiler"
+    installer: "os"
+
+  delve:
+    name: "Delve"
+    package_name: "delve"
+    description: "Go debugger"
+    installer: "os"
+
+  # Rust Development
+  rustup:
+    name: "Rustup"
+    package_name: "rustup"
+    description: "Rust toolchain installer"
+    installer: "os"
+
+  cargo:
+    name: "Cargo"
+    package_name: "cargo"
+    description: "Rust package manager"
+    installer: "os"
+
+  # Node.js Development
+  nodejs:
+    name: "Node.js"
+    package_name: "nodejs"
+    description: "JavaScript runtime built on Chrome's V8 engine"
+    installer: "os"
+
+  npm:
+    name: "NPM"
+    package_name: "npm"
+    description: "Node.js package manager"
+    installer: "os"
+
+  typescript:
+    name: "TypeScript"
+    package_name: "typescript"
+    description: "Typed superset of JavaScript"
+    installer: "npm"
+
+  # Database - PostgreSQL
+  postgresql:
+    name: "PostgreSQL"
+    package_name: "postgresql"
+    description: "Advanced open source relational database"
+    installer: "os"
+
+  postgresql_client:
+    name: "PostgreSQL Client"
+    package_name: "postgresql-client"
+    description: "PostgreSQL database client"
+    installer: "os"
+
+  # Database - Redis
+  redis:
+    name: "Redis"
+    package_name: "redis"
+    description: "In-memory data structure store"
+    installer: "os"
+
+  # Database - SQLite
+  sqlite:
+    name: "SQLite"
+    package_name: "sqlite"
+    description: "C library that implements a small, fast, self-contained SQL database engine"
+    installer: "os"
+
+  # Graphical Tools
+  dbeaver:
+    name: "DBeaver"
+    package_name: "dbeaver"
+    description: "Universal database tool and SQL client"
+    installer: "os"
+
+package_groups:
+  - group_name: "common-dev-tools"
+    group_description: "Essential development tools for all developers"
+    required_installers: ["os"]
+    packages:
+      - "{{ packages.git }}"
+      - "{{ packages.make }}"
+      - "{{ packages.cmake }}"
+      - "{{ packages.gcc }}"
+      - "{{ packages.clang }}"
+      - "{{ packages.llvm }}"
+      - "{{ packages.pkg_config }}"
+      - "{{ packages.vscodium }}"
+      - "{{ packages.neovim }}"
+      - "{{ packages.helix }}"
+
+  - group_name: "language-servers"
+    group_description: "Language Server Protocol servers for enhanced editor support"
+    required_installers: ["os", "pip", "npm"]
+    packages:
+      - "{{ packages.clangd }}"
+      - "{{ packages.rust_analyzer }}"
+      - "{{ packages.gopls }}"
+      - "{{ packages.python_lsp_server }}"
+      - "{{ packages.typescript_language_server }}"
+
+  - group_name: "linters"
+    group_description: "Code linting and formatting tools"
+    required_installers: ["pip", "npm"]
+    packages:
+      - "{{ packages.black }}"
+      - "{{ packages.flake8 }}"
+      - "{{ packages.mypy }}"
+      - "{{ packages.eslint }}"
+      - "{{ packages.prettier }}"
+
+  - group_name: "container-podman"
+    group_description: "Podman container toolkit (daemonless containers)"
+    required_installers: ["os"]
+    packages:
+      - "{{ packages.podman }}"
+      - "{{ packages.buildah }}"
+      - "{{ packages.skopeo }}"
+
+  - group_name: "container-docker"
+    group_description: "Docker container platform"
+    required_installers: ["os"]
+    packages:
+      - "{{ packages.docker }}"
+      - "{{ packages.docker_compose }}"
+
+  - group_name: "infrastructure-tools"
+    group_description: "Infrastructure and cloud management tools"
+    required_installers: ["os"]
+    packages:
+      - "{{ packages.kubectl }}"
+      - "{{ packages.helm }}"
+      - "{{ packages.terraform }}"
+
+  - group_name: "python-dev"
+    group_description: "Python development environment"
+    required_installers: ["os", "pip"]
+    packages:
+      - "{{ packages.python3 }}"
+      - "{{ packages.python_pip }}"
+      - "{{ packages.python_venv }}"
+      - "{{ packages.python_dev }}"
+      - "{{ packages.pytest }}"
+      - "{{ packages.dbeaver }}"
+
+  - group_name: "go-dev"
+    group_description: "Go development environment"
+    required_installers: ["os"]
+    packages:
+      - "{{ packages.go }}"
+      - "{{ packages.delve }}"
+      - "{{ packages.dbeaver }}"
+
+  - group_name: "rust-dev"
+    group_description: "Rust development environment"
+    required_installers: ["os", "cargo"]
+    packages:
+      - "{{ packages.rustup }}"
+      - "{{ packages.cargo }}"
+      - "{{ packages.dbeaver }}"
+
+  - group_name: "nodejs-dev"
+    group_description: "Node.js development environment"
+    required_installers: ["os", "npm"]
+    packages:
+      - "{{ packages.nodejs }}"
+      - "{{ packages.npm }}"
+      - "{{ packages.dbeaver }}"
+
+  - group_name: "postgresql"
+    group_description: "PostgreSQL database server and tools"
+    required_installers: ["os"]
+    packages:
+      - "{{ packages.postgresql }}"
+      - "{{ packages.postgresql_client }}"
+      - "{{ packages.dbeaver }}"
+
+  - group_name: "redis"
+    group_description: "Redis in-memory data store"
+    required_installers: ["os"]
+    packages:
+      - "{{ packages.redis }}"
+
+  - group_name: "sqlite"
+    group_description: "SQLite embedded database"
+    required_installers: ["os"]
+    packages:
+      - "{{ packages.sqlite }}"
+      - "{{ packages.dbeaver }}"

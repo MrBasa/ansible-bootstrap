@@ -1,0 +1,81 @@
+# playbook-common-tools.yml
+# Check Ansible dependencies.
+- name: "Include Ansible Dependencies"
+  import_playbook: playbook-ansible-dependencies.yml
+
+# Common Tools Playbook
+- name: "Bootstrap Linux Environment - Common Tools"
+  hosts: localhost
+  connection: local
+  gather_facts: true
+  # Suppress Python warnings.
+  # 'ansible_env' will NOT be available to playbook.
+  #gather_facts: false
+
+  vars:
+    common_packages:
+      - git
+      - curl
+      - fish
+      - lsd
+      - bat
+      - fzf
+      - zoxide
+      - duf
+      - mc
+      - entr
+      - tealdeer
+      - btop
+      - micro
+      - thefuck
+      - figlet
+      - cowsay
+      - fortune-mod
+
+    debian_packages:
+      - 7zip
+      - fonts-firacode
+      - fortune-anarchism
+      - anarchism
+
+    fedora_packages:
+      - 7zip
+      - cascadia-code-nf-fonts
+      - chezmoi
+
+    arch_packages:
+      - 7zip
+      - ttf-firacode-nerd
+      - chezmoi
+      - base-devel
+      - git
+
+    arch_aur_packages:
+      - fortune-mod-anarchism
+      - anarchism
+
+  tasks:
+    - name: "Install packages using package managers"
+      import_playbook: playbook_package-managers.yml
+      vars:
+        os_packages_common: "{{ common_packages }}"
+        os_packages_debian: "{{ debian_packages }}"
+        os_packages_redhat: "{{ fedora_packages }}"
+        os_packages_arch: "{{ arch_packages }}"
+        aur_packages: "{{ arch_aur_packages }}"
+
+    - name: "Link batcat to bat on Debian systems"
+      when: ansible_os_family == "Debian"
+      become: yes
+      file:
+        src: /usr/bin/batcat
+        dest: /usr/local/bin/bat
+        state: link
+
+    - name: "Install Chezmoi via official script (non-Arch systems)"
+      when: ansible_os_family != "Archlinux"
+      become: yes
+      shell: |
+        sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /usr/local/bin
+      args:
+        creates: /usr/local/bin/chezmoi
