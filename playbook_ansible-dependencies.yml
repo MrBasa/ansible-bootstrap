@@ -16,6 +16,13 @@
       args:
         creates: "{{ ansible_env.HOME }}/.ansible/collections/ansible_collections/ansible/posix"
 
+    - name: Install kewlfft.aur collection for AUR package management
+      when: ansible_os_family == "Archlinux"
+      ansible.builtin.command:
+        cmd: ansible-galaxy collection install kewlfft.aur
+      args:
+        creates: "{{ ansible_env.HOME }}/.ansible/collections/ansible_collections/kewlfft/aur"
+
     - name: "Create a dedicated user for AUR builds (Arch only)"
       when: ansible_os_family == "Archlinux"
       become: yes

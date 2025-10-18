@@ -89,11 +89,24 @@
         - os_common_install_result is defined or os_debian_install_result is defined or os_redhat_install_result is defined or os_arch_install_result is defined
 
     # --- AUR Package Installation with Individual Package Looping ---
+    # - name: "Install AUR packages (Arch only, individual)"
+    #   when: ansible_os_family == "Archlinux" and aur_packages | length > 0
+    #   become: yes
+    #   become_user: aur_builder
+    #   community.general.aur:
+    #     name: "{{ item }}"
+    #     state: present
+    #   loop: "{{ aur_packages }}"
+    #   environment:
+    #     HOME: "/home/aur_builder"
+    #   ignore_errors: yes
+    #   register: aur_install_result
+
     - name: "Install AUR packages (Arch only, individual)"
       when: ansible_os_family == "Archlinux" and aur_packages | length > 0
       become: yes
       become_user: aur_builder
-      community.general.aur:
+      kewlfft.aur.aur:
         name: "{{ item }}"
         state: present
       loop: "{{ aur_packages }}"
