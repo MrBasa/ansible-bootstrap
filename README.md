@@ -39,19 +39,19 @@ cd ansible-bootstrap
 
 ### Step 2: Run the Playbooks
 
-"Install common productivity tools:"
+Install common productivity tools:
 ```bash
-ansible-playbook playbook_common-tools.yml -K
+	ansible-playbook playbook_common-tools.yml -K
 ```
 
-"Install development environment (default: common-dev-tools + language-servers):"
+Install development environment (default: common-dev-tools + language-servers):
 ```bash
-ansible-playbook playbook_dev-tools.yml -K
+	ansible-playbook playbook_dev-tools.yml -K
 ```
 
-"Install specific development groups:"
+Install specific development groups:
 ```bash
-ansible-playbook playbook_dev-tools.yml -K -e '{"languages": ["python-dev", "rust-dev"], "databases": ["postgresql"]}'
+	ansible-playbook playbook_dev-tools.yml -K -e '{"languages": ["python-dev", "rust-dev"], "databases": ["postgresql"]}'
 ```
 
 ---
