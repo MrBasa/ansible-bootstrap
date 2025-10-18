@@ -30,10 +30,6 @@ This repository contains Ansible playbooks to bootstrap a new Linux machine (Deb
 sudo apt update && sudo apt install -y ansible-core git  # For Debian/Ubuntu
 sudo dnf install -y ansible-core git                     # For Fedora
 sudo pacman -Syu --needed ansible-core git base-devel    # For Arch
-
-# Clone this repository
-git clone https://github.com/mrbasa/ansible-bootstrap.git
-cd ansible-bootstrap
 ```
 *Note for Arch: The `base-devel` package group is required to build AUR packages.*
 
@@ -41,17 +37,17 @@ cd ansible-bootstrap
 
 Install common productivity tools:
 ```bash
-	ansible-playbook playbook_common-tools.yml -K
+ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i localhost, playbook_common-tools.yml -K
 ```
 
 Install development environment (default: common-dev-tools + language-servers):
 ```bash
-	ansible-playbook playbook_dev-tools.yml -K
+ansible-playbook playbook_dev-tools.yml -K
 ```
 
 Install specific development groups:
 ```bash
-	ansible-playbook playbook_dev-tools.yml -K -e '{"languages": ["python-dev", "rust-dev"], "databases": ["postgresql"]}'
+ansible-playbook playbook_dev-tools.yml -K -e '{"languages": ["python-dev", "rust-dev"], "databases": ["postgresql"]}'
 ```
 
 ---
@@ -82,22 +78,22 @@ The `playbook_dev-tools.yml` uses a configuration-driven approach where you spec
 
 Install only common development tools and language servers (default):
 ```bash
-	ansible-playbook playbook_dev-tools.yml -K
+ansible-playbook playbook_dev-tools.yml -K
 ```
 
 Install Python and PostgreSQL:
 ```bash
-	ansible-playbook playbook_dev-tools.yml -K -e '{"languages": ["python-dev"], "databases": ["postgresql"]}'
+ansible-playbook playbook_dev-tools.yml -K -e '{"languages": ["python-dev"], "databases": ["postgresql"]}'
 ```
 
 Install multiple languages with infrastructure tools:
 ```bash
-	ansible-playbook playbook_dev-tools.yml -K -e '{"languages": ["python-dev", "go-dev", "nodejs-dev"], "infrastructure": ["infrastructure-tools"]}'
+ansible-playbook playbook_dev-tools.yml -K -e '{"languages": ["python-dev", "go-dev", "nodejs-dev"], "infrastructure": ["infrastructure-tools"]}'
 ```
 
 Install everything:
 ```bash
-	ansible-playbook playbook_dev-tools.yml -K -e '{"languages": ["python-dev", "go-dev", "rust-dev", "nodejs-dev"], "databases": ["postgresql", "redis", "sqlite"], "containers": ["container-podman"], "infrastructure": ["infrastructure-tools"], "linters": ["linters"]}'
+ansible-playbook playbook_dev-tools.yml -K -e '{"languages": ["python-dev", "go-dev", "rust-dev", "nodejs-dev"], "databases": ["postgresql", "redis", "sqlite"], "containers": ["container-podman"], "infrastructure": ["infrastructure-tools"], "linters": ["linters"]}'
 ```
 
 ---
