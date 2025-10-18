@@ -256,12 +256,13 @@ Failed package installations don't stop the entire process - they're reported wi
 Creates an organized development workspace:
 ```
 ~/dev/
-[square bracket]single_quote[square bracket][square bracket]single_quote[square bracket] go/
-[square bracket]single_quote[square bracket][square bracket]single_quote[square bracket] rust/
-[square bracket]single_quote[square bracket][square bracket]single_quote[square bracket] python/
-[square bracket]single_quote[square bracket][square bracket]single_quote[square bracket] js/
-[square bracket]single_quote[square bracket][square bracket]single_quote[square bracket] docker/
-[square bracket]single_quote[square bracket][square bracket]single_quote[square bracket] databases/
+├── python/
+├── go/
+├── rust/
+├── js/
+├── dotnet/
+├── docker/
+└── databases/
 ```
 
 ---
