@@ -80,24 +80,24 @@ The `playbook_dev-tools.yml` uses a configuration-driven approach where you spec
 
 ### Usage Examples
 
-"Install only common development tools and language servers (default):"
+Install only common development tools and language servers (default):
 ```bash
-ansible-playbook playbook_dev-tools.yml -K
+	ansible-playbook playbook_dev-tools.yml -K
 ```
 
-"Install Python and PostgreSQL:"
+Install Python and PostgreSQL:
 ```bash
-ansible-playbook playbook_dev-tools.yml -K -e '{"languages": ["python-dev"], "databases": ["postgresql"]}'
+	ansible-playbook playbook_dev-tools.yml -K -e '{"languages": ["python-dev"], "databases": ["postgresql"]}'
 ```
 
-"Install multiple languages with infrastructure tools:"
+Install multiple languages with infrastructure tools:
 ```bash
-ansible-playbook playbook_dev-tools.yml -K -e '{"languages": ["python-dev", "go-dev", "nodejs-dev"], "infrastructure": ["infrastructure-tools"]}'
+	ansible-playbook playbook_dev-tools.yml -K -e '{"languages": ["python-dev", "go-dev", "nodejs-dev"], "infrastructure": ["infrastructure-tools"]}'
 ```
 
-"Install everything:"
+Install everything:
 ```bash
-ansible-playbook playbook_dev-tools.yml -K -e '{"languages": ["python-dev", "go-dev", "rust-dev", "nodejs-dev"], "databases": ["postgresql", "redis", "sqlite"], "containers": ["container-podman"], "infrastructure": ["infrastructure-tools"], "linters": ["linters"]}'
+	ansible-playbook playbook_dev-tools.yml -K -e '{"languages": ["python-dev", "go-dev", "rust-dev", "nodejs-dev"], "databases": ["postgresql", "redis", "sqlite"], "containers": ["container-podman"], "infrastructure": ["infrastructure-tools"], "linters": ["linters"]}'
 ```
 
 ---
@@ -255,14 +255,14 @@ Failed package installations don't stop the entire process - they're reported wi
 
 Creates an organized development workspace:
 ```
-~/dev/
-├── python/
-├── go/
-├── rust/
-├── js/
-├── dotnet/
-├── docker/
-└── databases/
+	~/dev/
+	├── python/
+	├── go/
+	├── rust/
+	├── js/
+	├── dotnet/
+	├── docker/
+	└── databases/
 ```
 
 ---
