@@ -111,14 +111,13 @@
       when: ansible_os_family == "Archlinux" and aur_packages | length > 0
       become: yes
       become_user: aur_builder
-      kewlfft.aur.aur:
+      community.general.pacman:
         name: "{{ item.package_name }}"
         state: present
+        use: aur
       loop: "{{ aur_packages }}"
       loop_control:
         label: "Installing AUR package: {{ item.name }} - {{ item.package_name }}"
-      environment:
-        HOME: "/home/aur_builder"
 
     # PIP Packages
     - name: "Install pip packages"

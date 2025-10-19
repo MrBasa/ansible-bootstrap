@@ -5,20 +5,15 @@
 
   tasks:
     - name: Install community.general collection (required for pacman module)
-      ansible.builtin.command:
-        cmd: ansible-galaxy collection install community.general
-        creates: "{{ ansible_env.HOME }}/.ansible/collections/ansible_collections/community/general"
-
-    # - name: "Install ansible.posix collection"
-    #   ansible.builtin.command:
-    #     cmd: ansible-galaxy collection install ansible.posix
-    #     creates: "{{ ansible_env.HOME }}/.ansible/collections/ansible_collections/ansible/posix"
+      ansible.builtin.ansible_galaxy:
+        name: community.general
+        state: present
 
     - name: Install kewlfft.aur collection for AUR package management
       when: ansible_os_family == "Archlinux"
-      ansible.builtin.command:
-        cmd: ansible-galaxy collection install kewlfft.aur
-        creates: "{{ ansible_env.HOME }}/.ansible/collections/ansible_collections/kewlfft/aur"
+      ansible.builtin.ansible_galaxy:
+        name: kewlfft.aur
+        state: present
 
     - name: "Create a dedicated user for AUR builds (Arch only)"
       when: ansible_os_family == "Archlinux"
@@ -29,6 +24,7 @@
         shell: /bin/bash
 
     - name: "Create remote_tmp directory for aur_builder (Arch only)"
+      when: ansible_os_family == "Archlinux"
       ansible.builtin.file:
         path: /home/aur_builder/.ansible/tmp
         state: directory
@@ -36,7 +32,6 @@
         owner: aur_builder
         group: aur_builder
       become: yes
-      when: ansible_os_family == "Archlinux"
 
     - name: "Allow aur_builder to run pacman without a password (Arch only)"
       when: ansible_os_family == "Archlinux"
