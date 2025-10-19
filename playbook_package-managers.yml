@@ -106,15 +106,16 @@
         label: "Installing OS package: {{ item.name }} - {{ item.package_name }}"
 
     # For Arch:
-    # - name: "Install Arch OS packages (common + specific)"
-    #   when: ansible_os_family == "Archlinux" and (os_packages_common | length > 0 or os_packages_arch | length > 0)
-    #   become: yes
-    #   package:
-    #     name: "{{ item.package_name }}"
-    #     state: present
-    #   loop: "{{ os_packages_common + os_packages_arch }}"
-    #   loop_control:
-    #     label: "Installing OS package: {{ item.name }} - {{ item.package_name }}"
+    - name: "Install Arch OS packages (common + specific)"
+      when: ansible_os_family == "Archlinux" and (os_packages_common | length > 0 or os_packages_arch | length > 0)
+      become: yes
+      community.general.pacman:
+        name: "{{ item.package_name }}"
+        state: present
+        extra_args: "--noconfirm"
+      loop: "{{ os_packages_common + os_packages_arch }}"
+      loop_control:
+        label: "Installing OS package: {{ item.name }} - {{ item.package_name }}"
 
     # - name: "Install Arch OS packages (common + specific)"
     #   when: ansible_os_family == "Archlinux" and (os_packages_common | length > 0 or os_packages_arch | length > 0)
@@ -127,16 +128,16 @@
     #   loop_control:
     #     label: "Installing OS package: {{ item.name }} - {{ item.package_name }}"
     # For Arch:
-    - name: "Install Arch OS packages (common + specific)"
-      when: ansible_os_family == "Archlinux" and (os_packages_common | length > 0 or os_packages_arch | length > 0)
-      become: yes
-      shell: |
-        pacman --noconfirm --needed -S "{{ item.package_name }}"
-      loop: "{{ os_packages_common + os_packages_arch }}"
-      loop_control:
-        label: "Installing OS package: {{ item.name }} - {{ item.package_name }}"
-      args:
-        executable: /bin/bash
+    # - name: "Install Arch OS packages (common + specific)"
+    #   when: ansible_os_family == "Archlinux" and (os_packages_common | length > 0 or os_packages_arch | length > 0)
+    #   become: yes
+    #   shell: |
+    #     pacman --noconfirm --needed -S "{{ item.package_name }}"
+    #   loop: "{{ os_packages_common + os_packages_arch }}"
+    #   loop_control:
+    #     label: "Installing OS package: {{ item.name }} - {{ item.package_name }}"
+    #   args:
+    #     executable: /bin/bash
 
     # --- Other Packages ---
     # AUR Packages
@@ -209,6 +210,7 @@
       loop: "{{ brew_packages }}"
       loop_control:
         label: "Installing Brew package: {{ item.name }} - {{ item.package_name }}"
+
   # --- Install Error ---
   rescue:
     - name: "Extract failure details safely"
@@ -219,7 +221,8 @@
 
     - name: "Record package failure"
       set_fact:
-        failed_installations: "{{ failed_installations + [{
+        failed_installations: |
+        "{{ failed_installations + [{
           'name': failed_package_name,
           'package_name': failed_package_id, 
           'msg': failed_error_msg
