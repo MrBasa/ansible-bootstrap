@@ -21,7 +21,7 @@ fi
 echo "✅ Ansible installed successfully!"
 echo "📥 Running Ansible playbook..."
 
-# Run ansible-pull with the repository
-#ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git -i localhost, playbook-common-tools.yml -K
+# Run ansible-pull with the repository to complete setting up Ansible
+ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git playbook_ansible-dependencies.yml -K
 
 echo "🎉 Bootstrap complete!"
