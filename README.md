@@ -4,7 +4,7 @@ This repository contains a modular Ansible setup for bootstrapping Linux systems
 The architecture uses configuration-driven playbooks that share a common package management system.
 See [this sample playbook](./playbook_sample-template.yml) for an example.
 This is intended to allow me to easily play around with different Linux repos while keeping my tools and configs consistent.
-To be utilized with my [dotfiles repo](../dotfiles) and [Chezmoi](https://www.chezmoi.io/).
+To be utilized with my [dotfiles repo](https://github.com/MrBasa/dotfiles) and [Chezmoi](https://www.chezmoi.io/).
 
 ## Quick Start
 
