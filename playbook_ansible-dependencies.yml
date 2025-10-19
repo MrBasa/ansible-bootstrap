@@ -34,7 +34,7 @@
 
     - name: "Allow aur_builder to run pacman without a password (Arch only)"
       when: ansible_os_family == "Archlinux"
-      #become: yes
+      become: yes
       ansible.builtin.lineinfile:
         path: /etc/sudoers.d/aur_builder
         line: "aur_builder ALL=(ALL) NOPASSWD: /usr/bin/pacman"
