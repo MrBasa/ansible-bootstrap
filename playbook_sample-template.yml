@@ -71,6 +71,13 @@
         description: "An example Flatpak application"
         installer: "flatpak"
 
+    # Homebrew Packages
+    brew_packages:
+      - name: "Example Homebrew Package"
+        package_name: "example-brew-package"
+        description: "An example package from Homebrew"
+        installer: "brew"
+
   tasks:
     # --- Install packages using package managers ---
     - name: "Install packages using package managers"

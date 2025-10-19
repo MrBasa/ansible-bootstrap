@@ -2,15 +2,16 @@
 # Installs packages using various package managers.
 - name: "Initialize package variables and results tracker"
   set_fact:
-    pip_packages: "{{ pip_packages | default([]) }}"
-    cargo_packages: "{{ cargo_packages | default([]) }}"
-    npm_packages: "{{ npm_packages | default([]) }}"
-    flatpak_packages: "{{ flatpak_packages | default([]) }}"
     os_packages_common: "{{ os_packages_common | default([]) }}"
     os_packages_debian: "{{ os_packages_debian | default([]) }}"
     os_packages_fedora: "{{ os_packages_fedora | default([]) }}"
     os_packages_arch: "{{ os_packages_arch | default([]) }}"
     aur_packages: "{{ aur_packages | default([]) }}"
+    pip_packages: "{{ pip_packages | default([]) }}"
+    npm_packages: "{{ npm_packages | default([]) }}"
+    cargo_packages: "{{ cargo_packages | default([]) }}"
+    flatpak_packages: "{{ flatpak_packages | default([]) }}"
+    brew_packages: "{{ brew_packages | default([]) }}"
     failed_installations: []
 
 # --- Package Manager Setup (HARD FAILURES) ---
@@ -55,70 +56,67 @@
           package:
             name: flatpak
             state: present
-
         - name: "Add Flathub repository"
           become: yes
           command: flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
           args:
             creates: "/var/lib/flatpak/repo/flathub.flatpakrepo"
 
+    - name: "Check Homebrew availability or install it"
+      when: brew_packages | length > 0
+      block:
+        - name: "Check if Homebrew is available"
+          command: which brew
+          register: brew_check
+          changed_when: false
+          ignore_errors: yes
+        - name: "Install Homebrew if missing"
+          when: brew_check.rc != 0
+          shell: |
+            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          args:
+            creates: "/home/linuxbrew/.linuxbrew/bin/brew"
+          environment:
+            NONINTERACTIVE: 1
+
 # --- Package Installation (CONTINUE ON INDIVIDUAL FAILURES) ---
 - name: "Install all packages"
   block:
-    # OS Packages
-    - name: "Install common OS packages"
-      when: ansible_os_family == "Debian" and os_packages_common | length > 0
-      become: yes
-      apt:
-        name: "{{ item.package_name }}"
-        state: present
-      loop: "{{ os_packages_common }}"
-      loop_control:
-        label: "Installing OS package: {{ item.name }} - {{ item.package_name }}"
-
-    - name: "Install Debian-specific OS packages"
-      when: ansible_os_family == "Debian" and os_packages_debian | length > 0
-      become: yes
-      apt:
-        name: "{{ item.package_name }}"
-        state: present
-      loop: "{{ os_packages_debian }}"
-      loop_control:
-        label: "Installing OS package: {{ item.name }} - {{ item.package_name }}"
-
-    - name: "Install Fedora-specific OS packages"
-      when: ansible_os_family == "RedHat" and os_packages_fedora | length > 0
-      become: yes
-      dnf:
-        name: "{{ item.package_name }}"
-        state: present
-      loop: "{{ os_packages_fedora }}"
-      loop_control:
-        label: "Installing OS package: {{ item.name }} - {{ item.package_name }}"
-
-    - name: "Install Arch-specific OS packages"
-      when: ansible_os_family == "Archlinux" and os_packages_arch | length > 0
+    # --- OS Packages ---
+    # For Debian:
+    - name: "Install Debian OS packages (common + specific)"
+      when: ansible_os_family == "Debian" and (os_packages_common | length > 0 or os_packages_debian | length > 0)
       become: yes
       package:
         name: "{{ item.package_name }}"
         state: present
-      loop: "{{ os_packages_arch }}"
+      loop: "{{ os_packages_common + os_packages_debian }}"
       loop_control:
         label: "Installing OS package: {{ item.name }} - {{ item.package_name }}"
 
-    # AUR Packages
-    # - name: "Install AUR packages"
-    #   when: ansible_os_family == "Archlinux" and aur_packages | length > 0
-    #   become: yes
-    #   become_user: aur_builder
-    #   community.general.pacman:
-    #     name: "{{ item.package_name }}"
-    #     state: present
-    #     use: aur
-    #   loop: "{{ aur_packages }}"
-    #   loop_control:
-    #     label: "Installing AUR package: {{ item.name }} - {{ item.package_name }}"
+    # For Fedora:
+    - name: "Install Fedora OS packages (common + specific)"
+      when: ansible_os_family == "RedHat" and (os_packages_common | length > 0 or os_packages_fedora | length > 0)
+      become: yes
+      package:
+        name: "{{ item.package_name }}"
+        state: present
+      loop: "{{ os_packages_common + os_packages_fedora }}"
+      loop_control:
+        label: "Installing OS package: {{ item.name }} - {{ item.package_name }}"
 
+    # For Arch:
+    - name: "Install Arch OS packages (common + specific)"
+      when: ansible_os_family == "Archlinux" and (os_packages_common | length > 0 or os_packages_arch | length > 0)
+      become: yes
+      package:
+        name: "{{ item.package_name }}"
+        state: present
+      loop: "{{ os_packages_common + os_packages_arch }}"
+      loop_control:
+        label: "Installing OS package: {{ item.name }} - {{ item.package_name }}"
+
+    # --- Other Packages ---
     # AUR Packages
     - name: "Install AUR packages"
       when: ansible_os_family == "Archlinux" and aur_packages | length > 0
@@ -144,17 +142,6 @@
       loop_control:
         label: "Installing PIP package: {{ item.name }} - {{ item.package_name }}"
 
-    # Cargo Packages
-    - name: "Install cargo packages"
-      when: cargo_packages | length > 0
-      become: yes
-      community.general.cargo:
-        name: "{{ item.package_name }}"
-        state: present
-      loop: "{{ cargo_packages }}"
-      loop_control:
-        label: "Installing Cargo package: {{ item.name }} - {{ item.package_name }}"
-
     # NPM Packages
     - name: "Install npm packages"
       when: npm_packages | length > 0 and npm_check.rc == 0
@@ -166,6 +153,17 @@
       loop: "{{ npm_packages }}"
       loop_control:
         label: "Installing NPM package: {{ item.name }} - {{ item.package_name }}"
+
+    # Cargo Packages
+    - name: "Install cargo packages"
+      when: cargo_packages | length > 0
+      become: yes
+      community.general.cargo:
+        name: "{{ item.package_name }}"
+        state: present
+      loop: "{{ cargo_packages }}"
+      loop_control:
+        label: "Installing Cargo package: {{ item.name }} - {{ item.package_name }}"
 
     # Flatpak Packages
     - name: "Install flatpak packages"
@@ -179,10 +177,21 @@
       loop_control:
         label: "Installing Flatpak package: {{ item.name }} - {{ item.package_name }}"
 
+    # Homebrew Packages
+    - name: "Install brew packages"
+      when: brew_packages | length > 0 and brew_check.rc == 0
+      become: yes
+      community.general.homebrew:
+        name: "{{ item.package_name }}"
+        state: present
+      loop: "{{ brew_packages }}"
+      loop_control:
+        label: "Installing Brew package: {{ item.name }} - {{ item.package_name }}"
+
   rescue:
     - name: "Record package failure"
       set_fact:
-        failed_installations: "{{ failed_installations + [ansible_failed_result | to_json] }}"
+        failed_installations: "{{ failed_installations + [ansible_failed_result] }}"
 
     - name: "Log failure to file"
       lineinfile:
