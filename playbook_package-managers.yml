@@ -118,18 +118,29 @@
 
     # --- Other Packages ---
     # AUR Packages
-    - name: "Install AUR packages"
-      when: ansible_os_family == "Archlinux" and aur_packages | length > 0
+    # - name: "Install AUR packages"
+    #   when: ansible_os_family == "Archlinux" and aur_packages | length > 0
+    #   become: yes
+    #   become_user: aur_builder
+    #   kewlfft.aur.aur:
+    #     name: "{{ item.package_name }}"
+    #     state: present
+    #   loop: "{{ aur_packages }}"
+    #   loop_control:
+    #     label: "Installing AUR package: {{ item.name }} - {{ item.package_name }}"
+    #   environment:
+    #     HOME: "/home/aur_builder"
+
+    - name: "Install Arch OS packages (common + specific)"
+      when: ansible_os_family == "Archlinux" and (os_packages_common | length > 0 or os_packages_arch | length > 0)
       become: yes
-      become_user: aur_builder
-      kewlfft.aur.aur:
+      community.general.pacman:
         name: "{{ item.package_name }}"
         state: present
-      loop: "{{ aur_packages }}"
+        extra_args: "--noconfirm --needed"
+      loop: "{{ os_packages_common + os_packages_arch }}"
       loop_control:
-        label: "Installing AUR package: {{ item.name }} - {{ item.package_name }}"
-      environment:
-        HOME: "/home/aur_builder"
+        label: "Installing OS package: {{ item.name }} - {{ item.package_name }}"
 
     # PIP Packages
     - name: "Install pip packages"
@@ -191,17 +202,17 @@
   rescue:
     - name: "Record package failure"
       set_fact:
-        failed_installations: "{{ failed_installations + [ansible_failed_result] }}"
-
+        #failed_installations: "{{ failed_installations + [{'name': ansible_failed_result.item.name | default('unknown'), 'package_name': ansible_failed_result.item.package_name | default('unknown'), 'msg': ansible_failed_result.msg | default('unknown error')}] }}"
+        failed_installations: "{{ failed_installations + ansible_failed_result }}"
     - name: "Log failure to file"
       lineinfile:
         path: "~/ansible_package_failures.log"
-        line: "FAILED | {{ ansible_date_time.iso8601 }} | {{ ansible_failed_result.item.name | default('unknown') }} ({{ ansible_failed_result.item.package_name | default('unknown') }}) | {{ ansible_failed_result.msg | default('unknown error') }}"
+        #line: "FAILED | {{ ansible_date_time.iso8601 }} | {{ ansible_failed_result.item.name | default('unknown') }} ({{ ansible_failed_result.item.package_name | default('unknown') }}) | {{ ansible_failed_result.msg | default('unknown error') }}"
+        line: "FAILED | {{ ansible_date_time.iso8601 }} | {{ ansible_failed_result | default('unknown') }}"
         create: yes
-
     - name: "Continue with next package"
       debug:
-        msg: "Failed to install {{ ansible_failed_result.item.name | default('unknown package') }} - continuing..."
+        msg: "Failed to install {{ ansible_failed_result | default('unknown package') }} - continuing..."
 
 # --- Final Summary ---
 - name: "Display installation completion"
@@ -216,5 +227,5 @@
 - name: "Display individual failed packages"
   when: failed_installations | length > 0
   debug:
-    msg: "  - {{ item.item.name }} ({{ item.item.package_name }}): {{ item.msg }}"
+    msg: "  - {{ item.name }} ({{ item.package_name }}): {{ item.msg }}"
   loop: "{{ failed_installations }}"
