@@ -4,28 +4,24 @@
   connection: local
 
   tasks:
-    - name: "Install community.general collection"
-      ansible.builtin.command: >
-        ansible-galaxy collection install community.general
-      args:
+    - name: Install community.general collection (required for pacman module)
+      ansible.builtin.command:
+        cmd: ansible-galaxy collection install community.general
         creates: "{{ ansible_env.HOME }}/.ansible/collections/ansible_collections/community/general"
 
-    - name: "Install ansible.posix collection"
-      ansible.builtin.command: >
-        ansible-galaxy collection install ansible.posix
-      args:
-        creates: "{{ ansible_env.HOME }}/.ansible/collections/ansible_collections/ansible/posix"
+    # - name: "Install ansible.posix collection"
+    #   ansible.builtin.command:
+    #     cmd: ansible-galaxy collection install ansible.posix
+    #     creates: "{{ ansible_env.HOME }}/.ansible/collections/ansible_collections/ansible/posix"
 
     - name: Install kewlfft.aur collection for AUR package management
       when: ansible_os_family == "Archlinux"
       ansible.builtin.command:
         cmd: ansible-galaxy collection install kewlfft.aur
-      args:
         creates: "{{ ansible_env.HOME }}/.ansible/collections/ansible_collections/kewlfft/aur"
 
     - name: "Create a dedicated user for AUR builds (Arch only)"
       when: ansible_os_family == "Archlinux"
-      #become: yes
       ansible.builtin.user:
         name: aur_builder
         state: present
