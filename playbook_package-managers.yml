@@ -106,30 +106,15 @@
         label: "Installing OS package: {{ item.name }} - {{ item.package_name }}"
 
     # For Arch:
-    - name: "Install Arch OS packages (common + specific)"
-      when: ansible_os_family == "Archlinux" and (os_packages_common | length > 0 or os_packages_arch | length > 0)
-      become: yes
-      package:
-        name: "{{ item.package_name }}"
-        state: present
-      loop: "{{ os_packages_common + os_packages_arch }}"
-      loop_control:
-        label: "Installing OS package: {{ item.name }} - {{ item.package_name }}"
-
-    # --- Other Packages ---
-    # AUR Packages
-    # - name: "Install AUR packages"
-    #   when: ansible_os_family == "Archlinux" and aur_packages | length > 0
+    # - name: "Install Arch OS packages (common + specific)"
+    #   when: ansible_os_family == "Archlinux" and (os_packages_common | length > 0 or os_packages_arch | length > 0)
     #   become: yes
-    #   become_user: aur_builder
-    #   kewlfft.aur.aur:
+    #   package:
     #     name: "{{ item.package_name }}"
     #     state: present
-    #   loop: "{{ aur_packages }}"
+    #   loop: "{{ os_packages_common + os_packages_arch }}"
     #   loop_control:
-    #     label: "Installing AUR package: {{ item.name }} - {{ item.package_name }}"
-    #   environment:
-    #     HOME: "/home/aur_builder"
+    #     label: "Installing OS package: {{ item.name }} - {{ item.package_name }}"
 
     - name: "Install Arch OS packages (common + specific)"
       when: ansible_os_family == "Archlinux" and (os_packages_common | length > 0 or os_packages_arch | length > 0)
@@ -141,6 +126,21 @@
       loop: "{{ os_packages_common + os_packages_arch }}"
       loop_control:
         label: "Installing OS package: {{ item.name }} - {{ item.package_name }}"
+
+    # --- Other Packages ---
+    # AUR Packages
+    - name: "Install AUR packages"
+      when: ansible_os_family == "Archlinux" and aur_packages | length > 0
+      become: yes
+      become_user: aur_builder
+      kewlfft.aur.aur:
+        name: "{{ item.package_name }}"
+        state: present
+      loop: "{{ aur_packages }}"
+      loop_control:
+        label: "Installing AUR package: {{ item.name }} - {{ item.package_name }}"
+      environment:
+        HOME: "/home/aur_builder"
 
     # PIP Packages
     - name: "Install pip packages"
@@ -198,21 +198,31 @@
       loop: "{{ brew_packages }}"
       loop_control:
         label: "Installing Brew package: {{ item.name }} - {{ item.package_name }}"
-
+  # --- Install Error ---
   rescue:
+    - name: "Extract failure details safely"
+      set_fact:
+        failed_package_name: "{{ ansible_failed_result.item.name | default('unknown package') }}"
+        failed_package_id: "{{ ansible_failed_result.item.package_name | default('unknown') }}"
+        failed_error_msg: "{{ ansible_failed_result.msg | default('Unknown error') }}"
+
     - name: "Record package failure"
       set_fact:
-        #failed_installations: "{{ failed_installations + [{'name': ansible_failed_result.item.name | default('unknown'), 'package_name': ansible_failed_result.item.package_name | default('unknown'), 'msg': ansible_failed_result.msg | default('unknown error')}] }}"
-        failed_installations: "{{ failed_installations + ansible_failed_result }}"
+        failed_installations: "{{ failed_installations + [{
+          'name': failed_package_name,
+          'package_name': failed_package_id, 
+          'msg': failed_error_msg
+        }] }}"
+
     - name: "Log failure to file"
       lineinfile:
-        path: "~/ansible_package_failures.log"
-        #line: "FAILED | {{ ansible_date_time.iso8601 }} | {{ ansible_failed_result.item.name | default('unknown') }} ({{ ansible_failed_result.item.package_name | default('unknown') }}) | {{ ansible_failed_result.msg | default('unknown error') }}"
-        line: "FAILED | {{ ansible_date_time.iso8601 }} | {{ ansible_failed_result | default('unknown') }}"
+        path: "{{ ansible_env.HOME }}/ansible_package_failures.log"
+        line: "FAILED | {{ ansible_date_time.iso8601 }} | {{ failed_package_name }} ({{ failed_package_id }}) | {{ failed_error_msg }}"
         create: yes
+
     - name: "Continue with next package"
       debug:
-        msg: "Failed to install {{ ansible_failed_result | default('unknown package') }} - continuing..."
+        msg: "Failed to install {{ failed_package_name }} - continuing..."
 
 # --- Final Summary ---
 - name: "Display installation completion"
