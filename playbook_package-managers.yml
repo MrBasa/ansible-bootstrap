@@ -1,18 +1,18 @@
 # playbook_package-managers.yml
 # Installs packages using various package managers.
-# playbook_package-managers.yml - Now a tasks file
+# playbook_package-managers.yml - TRULY Simplified version
 - name: "Initialize package variables and results tracker"
   set_fact:
-    pip_packages: "{{ pip_packages | default([]) }}"
-    cargo_packages: "{{ cargo_packages | default([]) }}"
-    npm_packages: "{{ npm_packages | default([]) }}"
-    flatpak_packages: "{{ flatpak_packages | default([]) }}"
     os_packages_common: "{{ os_packages_common | default([]) }}"
     os_packages_debian: "{{ os_packages_debian | default([]) }}"
     os_packages_fedora: "{{ os_packages_fedora | default([]) }}"
     os_packages_arch: "{{ os_packages_arch | default([]) }}"
     aur_packages: "{{ aur_packages | default([]) }}"
-    installation_results: []
+    pip_packages: "{{ pip_packages | default([]) }}"
+    cargo_packages: "{{ cargo_packages | default([]) }}"
+    npm_packages: "{{ npm_packages | default([]) }}"
+    flatpak_packages: "{{ flatpak_packages | default([]) }}"
+    failed_installations: []
 
 - name: "Display package installation plan"
   debug:
@@ -28,10 +28,60 @@
       AUR Packages: {{ aur_packages | length }}
       Flatpak Packages: {{ flatpak_packages | length }}
 
-# --- OS Package Installation ---
-- name: "Install OS packages based on distribution"
+# --- Package Manager Setup (HARD FAILURES) ---
+- name: "Ensure package managers are available"
   block:
-    - name: "Install common OS packages (Debian)"
+    - name: "Check pip availability"
+      when: pip_packages | length > 0
+      command: which pip3 || which pip
+      register: pip_check
+      changed_when: false
+      failed_when: pip_check.rc != 0
+
+    - name: "Check npm availability"
+      when: npm_packages | length > 0
+      command: which npm
+      register: npm_check
+      changed_when: false
+      failed_when: npm_check.rc != 0
+
+    - name: "Check cargo availability or install it"
+      when: cargo_packages | length > 0
+      block:
+        - name: "Check if cargo is available"
+          command: which cargo
+          register: cargo_check
+          changed_when: false
+          ignore_errors: yes
+
+        - name: "Install cargo if missing"
+          when: cargo_check.rc != 0
+          become: yes
+          shell: |
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          args:
+            creates: "{{ ansible_env.HOME }}/.cargo/bin/cargo"
+
+    - name: "Setup Flatpak for Flathub"
+      when: flatpak_packages | length > 0
+      block:
+        - name: "Ensure Flatpak is installed"
+          become: yes
+          package:
+            name: flatpak
+            state: present
+
+        - name: "Add Flathub repository"
+          become: yes
+          command: flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          args:
+            creates: "/var/lib/flatpak/repo/flathub.flatpakrepo"
+
+# --- Package Installation (CONTINUE ON INDIVIDUAL FAILURES) ---
+- name: "Install all packages"
+  block:
+    # OS Packages
+    - name: "Install common OS packages"
       when: ansible_os_family == "Debian" and os_packages_common | length > 0
       become: yes
       apt:
@@ -70,27 +120,10 @@
       loop: "{{ os_packages_arch }}"
       loop_control:
         label: "{{ item.name }}"
-  
-  rescue:
-    - name: "Record OS package installation failure"
-      set_fact:
-        installation_results: "{{ installation_results + [{'name': ansible_failed_result.item.name, 'package': ansible_failed_result.item.package_name, 'installer': 'os', 'status': 'FAILED', 'error': ansible_failed_result.msg}] }}"
-      when: ansible_failed_result is defined
-    
-    - name: "Display immediate failure notification"
-      debug:
-        msg: "Failed to install {{ ansible_failed_result.item.name }} ({{ ansible_failed_result.item.package_name }}) - {{ ansible_failed_result.msg }}"
-      when: ansible_failed_result is defined
-    
-    - name: "Continue despite package failures"
-      debug:
-        msg: "Continuing with other packages..."
 
-# --- AUR Package Installation ---
-- name: "Install AUR packages (Arch only)"
-  when: ansible_os_family == "Archlinux" and aur_packages | length > 0
-  block:
+    # AUR Packages
     - name: "Install AUR packages"
+      when: ansible_os_family == "Archlinux" and aur_packages | length > 0
       become: yes
       become_user: aur_builder
       kewlfft.aur.aur:
@@ -101,28 +134,10 @@
         label: "{{ item.name }}"
       environment:
         HOME: "/home/aur_builder"
-  
-  rescue:
-    - name: "Record AUR package installation failure"
-      set_fact:
-        installation_results: "{{ installation_results + [{'name': ansible_failed_result.item.name, 'package': ansible_failed_result.item.package_name, 'installer': 'aur', 'status': 'FAILED', 'error': ansible_failed_result.msg}] }}"
-    
-    - name: "Display AUR failure notification"
-      debug:
-        msg: "Failed to install {{ ansible_failed_result.item.name }} ({{ ansible_failed_result.item.package_name }) via AUR - {{ ansible_failed_result.msg }}"
 
-# --- PIP Package Installation ---
-- name: "Install pip packages"
-  when: pip_packages | length > 0
-  block:
-    - name: "Check if pip is available"
-      command: which pip3 || which pip
-      register: pip_check
-      changed_when: false
-      ignore_errors: yes
-
+    # PIP Packages
     - name: "Install pip packages"
-      when: pip_check.rc == 0
+      when: pip_packages | length > 0 and pip_check.rc == 0
       become: yes
       pip:
         name: "{{ item.package_name }}"
@@ -130,41 +145,68 @@
       loop: "{{ pip_packages }}"
       loop_control:
         label: "{{ item.name }}"
-  
+
+    # Cargo Packages
+    - name: "Install cargo packages"
+      when: cargo_packages | length > 0
+      become: yes
+      community.general.cargo:
+        name: "{{ item.package_name }}"
+        state: present
+      loop: "{{ cargo_packages }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    # NPM Packages
+    - name: "Install npm packages"
+      when: npm_packages | length > 0 and npm_check.rc == 0
+      become: yes
+      npm:
+        name: "{{ item.package_name }}"
+        state: present
+        global: yes
+      loop: "{{ npm_packages }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    # Flatpak Packages
+    - name: "Install flatpak packages"
+      when: flatpak_packages | length > 0
+      become: yes
+      community.general.flatpak:
+        name: "{{ item.package_name }}"
+        state: present
+        method: system
+      loop: "{{ flatpak_packages }}"
+      loop_control:
+        label: "{{ item.name }}"
+
   rescue:
-    - name: "Record pip package installation failure"
+    - name: "Record package failure"
       set_fact:
-        installation_results: "{{ installation_results + [{'name': ansible_failed_result.item.name, 'package': ansible_failed_result.item.package_name, 'installer': 'pip', 'status': 'FAILED', 'error': ansible_failed_result.msg}] }}"
-    
-    - name: "Display pip failure notification"
-      debug:
-        msg: "Failed to install {{ ansible_failed_result.item.name }} ({{ ansible_failed_result.item.package_name }) via pip - {{ ansible_failed_result.msg }}"
-    
-    - name: "Warn if pip is not available"
-      when: pip_check.rc != 0
-      debug:
-        msg: "pip is not available but pip packages were requested"
+        failed_installations: "{{ failed_installations + [ansible_failed_result] }}"
 
-# --- Add similar blocks for cargo, npm, flatpak here ---
-# Pattern follows the same structure as above
+    - name: "Log failure to file"
+      lineinfile:
+        path: "/tmp/ansible_package_failures.log"
+        line: "FAILED | {{ ansible_date_time.iso8601 }} | {{ ansible_failed_result.item.name }} ({{ ansible_failed_result.item.package_name }}) | {{ ansible_failed_result.msg }}"
+        create: yes
 
-# --- Installation Summary ---
-- name: "Display installation completion summary"
+    - name: "Display failure and continue"
+      debug:
+        msg: "Failed to install {{ ansible_failed_result.item.name }} - {{ ansible_failed_result.msg }}"
+
+# --- Final Summary ---
+- name: "Display installation summary"
   debug:
     msg: |
       Package installation completed!
       
-      {{ installation_results | length }} packages had issues during installation.
-      
-      Note about Language Servers and Kate:
-      Most language servers installed in the 'language-servers' group should work with Kate
-      when you install the 'LSP Client' plugin in Kate's settings.
-
-- name: "Display detailed failure report"
-  when: installation_results | length > 0
-  debug:
-    msg: |
-      Failed installations:
-      {% for result in installation_results %}
-      - {{ result.name }} ({{ result.package }}) via {{ result.installer }}: {{ result.error }}
+      {% if failed_installations %}
+      {{ failed_installations | length }} packages failed to install:
+      {% for failure in failed_installations %}
+        - {{ failure.item.name }} ({{ failure.item.package_name }}): {{ failure.msg }}
       {% endfor %}
+      {% else %}
+      All packages installed successfully!
+      {% endif %}
