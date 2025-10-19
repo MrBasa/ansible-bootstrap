@@ -141,7 +141,7 @@
 
   tasks:
     - name: "Install packages using package managers"
-      import_playbook: playbook_package-managers.yml
+      import_tasks: playbook_package-managers.yml
       vars:
         os_packages_common: "{{ common_packages }}"
         os_packages_debian: "{{ debian_packages }}"
@@ -157,7 +157,7 @@
         dest: /usr/local/bin/bat
         state: link
 
-    - name: "Install Chezmoi via official script (non-Arch systems)"
+    - name: "Install Chezmoi via official script (Debian systems)"
       when: ansible_os_family == "Debian"
       become: yes
       shell: |
