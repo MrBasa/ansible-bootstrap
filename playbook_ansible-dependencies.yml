@@ -4,10 +4,16 @@
   connection: local
 
   tasks:
-    - name: "Install community.general collection (required for pacman module)"
+    - name: "Install community.general collection"
       command: ansible-galaxy collection install community.general
       register: install_general
       changed_when: '"Nothing to do." not in install_general.stdout'
+
+    - name: "Install kewlfft.aur collection for AUR package management"
+      #when: ansible_os_family == "Archlinux"
+      command: ansible-galaxy collection install kewlfft.aur
+      register: install_aur
+      changed_when: '"Nothing to do." not in install_aur.stdout'
 
     - name: "Create a dedicated user for AUR builds (Arch only)"
       when: ansible_os_family == "Archlinux"

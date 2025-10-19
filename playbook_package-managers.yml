@@ -107,17 +107,31 @@
         label: "Installing OS package: {{ item.name }} - {{ item.package_name }}"
 
     # AUR Packages
+    # - name: "Install AUR packages"
+    #   when: ansible_os_family == "Archlinux" and aur_packages | length > 0
+    #   become: yes
+    #   become_user: aur_builder
+    #   community.general.pacman:
+    #     name: "{{ item.package_name }}"
+    #     state: present
+    #     use: aur
+    #   loop: "{{ aur_packages }}"
+    #   loop_control:
+    #     label: "Installing AUR package: {{ item.name }} - {{ item.package_name }}"
+
+    # AUR Packages
     - name: "Install AUR packages"
       when: ansible_os_family == "Archlinux" and aur_packages | length > 0
       become: yes
       become_user: aur_builder
-      community.general.pacman:
+      kewlfft.aur.aur:
         name: "{{ item.package_name }}"
         state: present
-        use: aur
       loop: "{{ aur_packages }}"
       loop_control:
         label: "Installing AUR package: {{ item.name }} - {{ item.package_name }}"
+      environment:
+        HOME: "/home/aur_builder"
 
     # PIP Packages
     - name: "Install pip packages"
@@ -168,17 +182,17 @@
   rescue:
     - name: "Record package failure"
       set_fact:
-        failed_installations: "{{ failed_installations + [ansible_failed_result] }}"
+        failed_installations: "{{ failed_installations + [ansible_failed_result | to_json] }}"
 
     - name: "Log failure to file"
       lineinfile:
-        path: "/tmp/ansible_package_failures.log"
-        line: "FAILED | {{ ansible_date_time.iso8601 }} | {{ ansible_failed_result.item.name }} ({{ ansible_failed_result.item.package_name }}) | {{ ansible_failed_result.msg }}"
+        path: "~/ansible_package_failures.log"
+        line: "FAILED | {{ ansible_date_time.iso8601 }} | {{ ansible_failed_result.item.name | default('unknown') }} ({{ ansible_failed_result.item.package_name | default('unknown') }}) | {{ ansible_failed_result.msg | default('unknown error') }}"
         create: yes
 
     - name: "Continue with next package"
       debug:
-        msg: "Failed to install {{ ansible_failed_result.item.name }} - continuing..."
+        msg: "Failed to install {{ ansible_failed_result.item.name | default('unknown package') }} - continuing..."
 
 # --- Final Summary ---
 - name: "Display installation completion"
