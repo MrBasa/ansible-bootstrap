@@ -1,47 +1,17 @@
 # playbook_package-managers.yml
 # Installs packages using various package managers.
-# playbook_package-managers.yml - TRULY Simplified version
 - name: "Initialize package variables and results tracker"
   set_fact:
+    pip_packages: "{{ pip_packages | default([]) }}"
+    cargo_packages: "{{ cargo_packages | default([]) }}"
+    npm_packages: "{{ npm_packages | default([]) }}"
+    flatpak_packages: "{{ flatpak_packages | default([]) }}"
     os_packages_common: "{{ os_packages_common | default([]) }}"
     os_packages_debian: "{{ os_packages_debian | default([]) }}"
     os_packages_fedora: "{{ os_packages_fedora | default([]) }}"
     os_packages_arch: "{{ os_packages_arch | default([]) }}"
     aur_packages: "{{ aur_packages | default([]) }}"
-    pip_packages: "{{ pip_packages | default([]) }}"
-    cargo_packages: "{{ cargo_packages | default([]) }}"
-    npm_packages: "{{ npm_packages | default([]) }}"
-    flatpak_packages: "{{ flatpak_packages | default([]) }}"
     failed_installations: []
-
-# - name: "Display package installation plan"
-#   debug:
-#     msg: |
-#       Installation Summary:
-#       OS Packages (Common): {{ os_packages_common | length }}
-#       OS Packages (Debian): {{ os_packages_debian | length }}
-#       OS Packages (Fedora): {{ os_packages_fedora | length }} 
-#       OS Packages (Arch): {{ os_packages_arch | length }}
-#       PIP Packages: {{ pip_packages | length }}
-#       Cargo Packages: {{ cargo_packages | length }}
-#       NPM Packages: {{ npm_packages | length }}
-#       AUR Packages: {{ aur_packages | length }}
-#       Flatpak Packages: {{ flatpak_packages | length }}
-
-- name: "Display package installation plan"
-  command:
-    cmd: |
-      echo "=== PACKAGE INSTALLATION PLAN ==="
-      echo "OS Packages - Common: {{ os_packages_common | length }}"
-      echo "OS Packages - Debian: {{ os_packages_debian | length }}"
-      echo "OS Packages - Fedora: {{ os_packages_fedora | length }}"
-      echo "OS Packages - Arch: {{ os_packages_arch | length }}"
-      echo "PIP Packages: {{ pip_packages | length }}"
-      echo "Cargo Packages: {{ cargo_packages | length }}"
-      echo "NPM Packages: {{ npm_packages | length }}"
-      echo "AUR Packages: {{ aur_packages | length }}"
-      echo "Flatpak Packages: {{ flatpak_packages | length }}"
-  changed_when: false
 
 # --- Package Manager Setup (HARD FAILURES) ---
 - name: "Ensure package managers are available"
@@ -104,7 +74,7 @@
         state: present
       loop: "{{ os_packages_common }}"
       loop_control:
-        label: "{{ item.name }}"
+        label: "Installing OS package: {{ item.name }} - {{ item.package_name }}"
 
     - name: "Install Debian-specific OS packages"
       when: ansible_os_family == "Debian" and os_packages_debian | length > 0
@@ -114,7 +84,7 @@
         state: present
       loop: "{{ os_packages_debian }}"
       loop_control:
-        label: "{{ item.name }}"
+        label: "Installing OS package: {{ item.name }} - {{ item.package_name }}"
 
     - name: "Install Fedora-specific OS packages"
       when: ansible_os_family == "RedHat" and os_packages_fedora | length > 0
@@ -124,7 +94,7 @@
         state: present
       loop: "{{ os_packages_fedora }}"
       loop_control:
-        label: "{{ item.name }}"
+        label: "Installing OS package: {{ item.name }} - {{ item.package_name }}"
 
     - name: "Install Arch-specific OS packages"
       when: ansible_os_family == "Archlinux" and os_packages_arch | length > 0
@@ -134,7 +104,7 @@
         state: present
       loop: "{{ os_packages_arch }}"
       loop_control:
-        label: "{{ item.name }}"
+        label: "Installing OS package: {{ item.name }} - {{ item.package_name }}"
 
     # AUR Packages
     - name: "Install AUR packages"
@@ -146,7 +116,7 @@
         state: present
       loop: "{{ aur_packages }}"
       loop_control:
-        label: "{{ item.name }}"
+        label: "Installing AUR package: {{ item.name }} - {{ item.package_name }}"
       environment:
         HOME: "/home/aur_builder"
 
@@ -159,7 +129,7 @@
         state: present
       loop: "{{ pip_packages }}"
       loop_control:
-        label: "{{ item.name }}"
+        label: "Installing PIP package: {{ item.name }} - {{ item.package_name }}"
 
     # Cargo Packages
     - name: "Install cargo packages"
@@ -170,7 +140,7 @@
         state: present
       loop: "{{ cargo_packages }}"
       loop_control:
-        label: "{{ item.name }}"
+        label: "Installing Cargo package: {{ item.name }} - {{ item.package_name }}"
 
     # NPM Packages
     - name: "Install npm packages"
@@ -182,7 +152,7 @@
         global: yes
       loop: "{{ npm_packages }}"
       loop_control:
-        label: "{{ item.name }}"
+        label: "Installing NPM package: {{ item.name }} - {{ item.package_name }}"
 
     # Flatpak Packages
     - name: "Install flatpak packages"
@@ -194,7 +164,7 @@
         method: system
       loop: "{{ flatpak_packages }}"
       loop_control:
-        label: "{{ item.name }}"
+        label: "Installing Flatpak package: {{ item.name }} - {{ item.package_name }}"
 
   rescue:
     - name: "Record package failure"
@@ -207,21 +177,22 @@
         line: "FAILED | {{ ansible_date_time.iso8601 }} | {{ ansible_failed_result.item.name }} ({{ ansible_failed_result.item.package_name }}) | {{ ansible_failed_result.msg }}"
         create: yes
 
-    - name: "Display failure and continue"
+    - name: "Continue with next package"
       debug:
-        msg: "Failed to install {{ ansible_failed_result.item.name }} - {{ ansible_failed_result.msg }}"
+        msg: "Failed to install {{ ansible_failed_result.item.name }} - continuing..."
 
 # --- Final Summary ---
-- name: "Display installation summary"
+- name: "Display installation completion"
   debug:
-    msg: |
-      Package installation completed!
-      
-      {% if failed_installations %}
-      {{ failed_installations | length }} packages failed to install:
-      {% for failure in failed_installations %}
-        - {{ failure.item.name }} ({{ failure.item.package_name }}): {{ failure.msg }}
-      {% endfor %}
-      {% else %}
-      All packages installed successfully!
-      {% endif %}
+    msg: "Package installation completed!"
+
+- name: "Display failed installations summary"
+  when: failed_installations | length > 0
+  debug:
+    msg: "{{ failed_installations | length }} packages failed to install:"
+
+- name: "Display individual failed packages"
+  when: failed_installations | length > 0
+  debug:
+    msg: "  - {{ item.item.name }} ({{ item.item.package_name }}): {{ item.msg }}"
+  loop: "{{ failed_installations }}"

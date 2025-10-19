@@ -2,185 +2,148 @@
 - name: "Include Ansible Dependencies"
   import_playbook: playbook_ansible-dependencies.yml
 
-- name: "Bootstrap Development Environment"
+- name: "Common Development Tools"
   hosts: localhost
   connection: local
   gather_facts: true
 
   vars:
-    # Default to only common-dev-tools and language-servers
-    selected_groups: "{{ ['common-dev-tools', 'language-servers'] + (languages | default([])) + (databases | default([])) + (containers | default([])) + (infrastructure | default([])) + (linters | default([])) }}"
+    # OS Packages (Common across all distributions)
+    os_packages_common:
+      # Core Development Tools
+      - name: "Git"
+        package_name: "git"
+        description: "Distributed version control system"
+        installer: "os"
+      - name: "GNU Make"
+        package_name: "make"
+        description: "Build automation tool"
+        installer: "os"
+      - name: "CMake"
+        package_name: "cmake"
+        description: "Cross-platform build system generator"
+        installer: "os"
+      - name: "LLVM"
+        package_name: "llvm" # Includes GCC and Clang
+        description: "Collection of modular and reusable compiler and toolchain technologies"
+        installer: "os"
+      - name: "pkg-config"
+        package_name: "pkg-config"
+        description: "Helper tool used when compiling applications and libraries"
+        installer: "os"
+
+    # OS Packages (Debian/Ubuntu specific)
+    os_packages_debian:
+      - name: "VSCodium"
+        package_name: "codium"
+        description: "Free/Libre Open Source Software Binaries of VSCode"
+        installer: "os"
+
+    # OS Packages (Fedora specific)
+    os_packages_fedora:
+      - name: "VSCodium"
+        package_name: "codium"
+        description: "Free/Libre Open Source Software Binaries of VSCode"
+        installer: "os"
+
+    # OS Packages (Arch specific)
+    # os_packages_arch:
+    #   - name: "Example Arch Package"
+    #     package_name: "example-arch"
+    #     description: "An example package for Arch Linux"
+    #     installer: "os"
+
+    # AUR Packages (Arch Linux only)
+    aur_packages:
+      - name: "VSCodium"
+        package_name: "vscodium-bin"
+        description: "Free/Libre Open Source Software Binaries of VSCode"
+        installer: "aur"
+
+    # PIP Packages
+    # pip_packages:
+    #   - name: "Example PIP Package"
+    #     package_name: "example-pip-package"
+    #     description: "An example Python package installed via pip"
+    #     installer: "pip"
+
+    # Cargo Packages
+    # cargo_packages:
+    #   - name: "Example Cargo Package"
+    #     package_name: "example-cargo-package"
+    #     description: "An example Rust package installed via cargo"
+    #     installer: "cargo"
+
+    # NPM Packages
+    # npm_packages:
+    #   - name: "Example NPM Package"
+    #     package_name: "example-npm-package"
+    #     description: "An example Node.js package installed via npm"
+    #     installer: "npm"
+
+    # Flatpak Packages
+    # flatpak_packages:
+    #   - name: "Example Flatpak Package"
+    #     package_name: "org.example.App"
+    #     description: "An example Flatpak application"
+    #     installer: "flatpak"
 
   tasks:
-    - name: "Load package configuration"
-      include_vars:
-        file: config_dev-tools.yml
-        name: config
-
-    - name: "Display installation plan"
-      debug:
-        msg: |
-          Installing package groups: {{ selected_groups | join(', ') }}
-          Available groups:
-          {% for group in config.package_groups %}
-          - {{ group.group_name }}: {{ group.group_description }}
-          {% endfor %}
-    - name: "Validate selected groups exist in configuration"
-      fail:
-        msg: "Package group '{{ item }}' not found in configuration. Available groups: {{ config.package_groups | map(attribute='group_name') | list | join(', ') }}"
-      when: item not in config.package_groups | map(attribute='group_name') | list
-      loop: "{{ selected_groups }}"
-
-    # --- Extract packages from selected groups ---
-    - name: "Extract packages from selected groups"
-      set_fact:
-        all_packages: "{{ all_packages | default([]) + item.packages }}"
-      loop: "{{ config.package_groups | selectattr('group_name', 'in', selected_groups) | list }}"
-
-    # --- Display package details ---
-    - name: "Display package installation details"
-      debug:
-        msg: |
-          Installing: {{ item.name }}
-          Package: {{ item.package_name }}
-          Description: {{ item.description }}
-          Installer: {{ item.installer }}
-      loop: "{{ all_packages }}"
-      loop_control:
-        label: "{{ item.name }}"
-
-    # --- Separate packages by installer and handle OS-specific names ---
-    - name: "Separate OS packages by distribution with OS-specific names"
-      set_fact:
-        os_packages_common: "{{ os_packages_common | default([]) + [item] }}"
-      loop: "{{ all_packages }}"
-      when: item.installer == 'os'
-
-    - name: "Process OS-specific package names for Debian"
-      set_fact:
-        os_packages_debian: "{{ os_packages_debian | default([]) + [item | combine({'package_name': item.os_specific.Debian})] if item.os_specific and item.os_specific.Debian is defined else [item] }}"
-      loop: "{{ all_packages }}"
-      when: item.installer == 'os' and ansible_os_family == 'Debian'
-
-    - name: "Process OS-specific package names for Fedora"
-      set_fact:
-        os_packages_fedora: "{{ os_packages_fedora | default([]) + [item | combine({'package_name': item.os_specific.Fedora})] if item.os_specific and item.os_specific.Fedora is defined else [item] }}"
-      loop: "{{ all_packages }}"
-      when: item.installer == 'os' and ansible_os_family == 'Fedora'
-
-    - name: "Process OS-specific package names for Arch"
-      set_fact:
-        os_packages_arch: "{{ os_packages_arch | default([]) + [item | combine({'package_name': item.os_specific.Archlinux})] if item.os_specific and item.os_specific.Archlinux is defined else [item] }}"
-      loop: "{{ all_packages }}"
-      when: item.installer == 'os' and ansible_os_family == 'Archlinux'
-
-    - name: "Separate pip packages"
-      set_fact:
-        pip_packages: "{{ pip_packages | default([]) + [item] }}"
-      loop: "{{ all_packages }}"
-      when: item.installer == 'pip'
-
-    - name: "Separate cargo packages"
-      set_fact:
-        cargo_packages: "{{ cargo_packages | default([]) + [item] }}"
-      loop: "{{ all_packages }}"
-      when: item.installer == 'cargo'
-
-    - name: "Separate npm packages"
-      set_fact:
-        npm_packages: "{{ npm_packages | default([]) + [item] }}"
-      loop: "{{ all_packages }}"
-      when: item.installer == 'npm'
+    # --- Pre-installation tasks ---
+    - name: "Setup VSCodium repositories"
+      block:
+        - name: "Setup VSCodium repository (Debian)"
+          when: ansible_os_family == "Debian"
+          block:
+            - name: "Add VSCodium GPG key"
+              ansible.builtin.get_url:
+                url: https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg
+                dest: /usr/share/keyrings/vscodium-archive-keyring.gpg
+                mode: '0644'
+                force: no
+              become: yes
+    
+            - name: "Add VSCodium repository"
+              ansible.builtin.copy:
+                content: |
+                  Types: deb
+                  URIs: https://download.vscodium.com/debs
+                  Suites: vscodium
+                  Components: main
+                  Architectures: amd64 arm64
+                  Signed-by: /usr/share/keyrings/vscodium-archive-keyring.gpg
+                dest: /etc/apt/sources.list.d/vscodium.sources
+                mode: '0644'
+              become: yes
+              notify: update apt cache
+    
+        - name: "Setup VSCodium repository (Fedora)"
+          when: ansible_os_family == "RedHat"
+          block:
+            - name: "Import VSCodium GPG key"
+              ansible.builtin.rpm_key:
+                state: present
+                key: https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/-/raw/master/pub.gpg
+              become: yes
+    
+            - name: "Add VSCodium repository"
+              ansible.builtin.copy:
+                content: |
+                  [gitlab.com_paulcarroty_vscodium_repo]
+                  name=download.vscodium.com
+                  baseurl=https://download.vscodium.com/rpms/
+                  enabled=1
+                  gpgcheck=1
+                  repo_gpgcheck=1
+                  gpgkey=https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/-/raw/master/pub.gpg
+                  metadata_expire=1h
+                dest: /etc/yum.repos.d/vscodium.repo
+                mode: '0644'
+              become: yes
+              notify: update dnf cache
 
     # --- Install packages using package managers ---
-    - name: "Include package managers playbook"
-      import_playbook: playbook_package-managers.yml
-      vars:
-        os_packages_common: "{{ os_packages_common | default([]) }}"
-        os_packages_debian: "{{ os_packages_debian | default([]) }}"
-        os_packages_fedora: "{{ os_packages_fedora | default([]) }}"
-        os_packages_arch: "{{ os_packages_arch | default([]) }}"
-        pip_packages: "{{ pip_packages | default([]) }}"
-        cargo_packages: "{{ cargo_packages | default([]) }}"
-        npm_packages: "{{ npm_packages | default([]) }}"
+    - name: "Install packages using package managers"
+      import_tasks: playbook_package-managers.yml
 
-    # --- Post-installation setup ---
-    - name: "Create development directories"
-      become: yes
-      become_user: "{{ ansible_user_id }}"
-      file:
-        path: "/home/{{ ansible_user_id }}/{{ item }}"
-        state: directory
-        mode: '0755'
-      loop:
-        - dev
-        - dev/go
-        - dev/rust
-        - dev/python
-        - dev/js
-        - dev/docker
-        - dev/databases
-      environment:
-        HOME: "/home/{{ ansible_user_id }}"
-
-    - name: "Install VS Code extensions"
-      when: "'common-dev-tools' in selected_groups"
-      become: yes
-      become_user: "{{ ansible_user_id }}"
-      shell:
-        cmd: "codium --install-extension {{ item }}"
-      loop:
-        - ms-python.python
-        - golang.Go
-        - rust-lang.rust-analyzer
-        - ms-dotnettools.csharp
-        - ms-vscode.vscode-typescript-next
-        - bradlc.vscode-tailwindcss
-        - eamodio.gitlens
-        - ms-vscode.cpptools
-        - ms-azuretools.vscode-docker
-        - hashicorp.terraform
-        - redhat.vscode-yaml
-        - ms-vscode.makefile-tools
-        - streetsidesoftware.code-spell-checker
-      environment:
-        HOME: "/home/{{ ansible_user_id }}"
-      ignore_errors: yes
-
-    - name: "Configure Git for development"
-      become: yes
-      become_user: "{{ ansible_user_id }}"
-      git_config:
-        name: "{{ item.name }}"
-        value: "{{ item.value }}"
-        scope: global
-      loop:
-        - { name: "user.name", value: "{{ ansible_user_id }}" }
-        - { name: "user.email", value: "{{ ansible_user_id }}@localhost" }
-        - { name: "init.defaultBranch", value: "main" }
-        - { name: "pull.rebase", value: "false" }
-        - { name: "core.editor", value: "micro" }
-      environment:
-        HOME: "/home/{{ ansible_user_id }}"
-
-    - name: "Display Kate LSP configuration note"
-      when: "'language-servers' in selected_groups"
-      debug:
-        msg: |
-          Language servers have been installed! To use them with Kate:
-          
-          1. Open Kate
-          2. Go to Settings → Configure Kate → Plugins
-          3. Enable "LSP Client" plugin
-          4. Restart Kate
-          5. Go to Settings → Configure Kate → LSP Client
-          6. The installed language servers should auto-configure for supported file types
-
-    - name: "Display completion message"
-      debug:
-        msg: |
-          Development environment setup completed!
-
-          Installed groups: {{ selected_groups | join(', ') }}
-          
-          Language servers are ready for editors like Kate (see note above).
+    # --- Post-installation special tasks ---
