@@ -21,12 +21,10 @@
       debug:
         msg: |
           Installing package groups: {{ selected_groups | join(', ') }}
-
           Available groups:
           {% for group in config.package_groups %}
           - {{ group.group_name }}: {{ group.group_description }}
           {% endfor %}
-
     - name: "Validate selected groups exist in configuration"
       fail:
         msg: "Package group '{{ item }}' not found in configuration. Available groups: {{ config.package_groups | map(attribute='group_name') | list | join(', ') }}"
@@ -64,11 +62,11 @@
       loop: "{{ all_packages }}"
       when: item.installer == 'os' and ansible_os_family == 'Debian'
 
-    - name: "Process OS-specific package names for RedHat"
+    - name: "Process OS-specific package names for Fedora"
       set_fact:
-        os_packages_redhat: "{{ os_packages_redhat | default([]) + [item | combine({'package_name': item.os_specific.RedHat})] if item.os_specific and item.os_specific.RedHat is defined else [item] }}"
+        os_packages_fedora: "{{ os_packages_fedora | default([]) + [item | combine({'package_name': item.os_specific.Fedora})] if item.os_specific and item.os_specific.Fedora is defined else [item] }}"
       loop: "{{ all_packages }}"
-      when: item.installer == 'os' and ansible_os_family == 'RedHat'
+      when: item.installer == 'os' and ansible_os_family == 'Fedora'
 
     - name: "Process OS-specific package names for Arch"
       set_fact:
@@ -100,7 +98,7 @@
       vars:
         os_packages_common: "{{ os_packages_common | default([]) }}"
         os_packages_debian: "{{ os_packages_debian | default([]) }}"
-        os_packages_redhat: "{{ os_packages_redhat | default([]) }}"
+        os_packages_fedora: "{{ os_packages_fedora | default([]) }}"
         os_packages_arch: "{{ os_packages_arch | default([]) }}"
         pip_packages: "{{ pip_packages | default([]) }}"
         cargo_packages: "{{ cargo_packages | default([]) }}"

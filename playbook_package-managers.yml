@@ -5,7 +5,7 @@
   vars:
     os_packages_common: []
     os_packages_debian: []
-    os_packages_redhat: []
+    os_packages_fedora: []
     os_packages_arch: []
     pip_packages: []
     cargo_packages: []
@@ -21,7 +21,7 @@
           Installation Summary:
           OS Packages (Common): {{ os_packages_common | length }}
           OS Packages (Debian): {{ os_packages_debian | length }}
-          OS Packages (RedHat): {{ os_packages_redhat | length }} 
+          OS Packages (Fedora): {{ os_packages_fedora | length }} 
           OS Packages (Arch): {{ os_packages_arch | length }}
           PIP Packages: {{ pip_packages | length }}
           Cargo Packages: {{ cargo_packages | length }}
@@ -54,16 +54,16 @@
       register: os_debian_install_result
       ignore_errors: yes
 
-    - name: "Install RedHat-specific OS packages (individual)"
-      when: ansible_os_family == "RedHat" and os_packages_redhat | length > 0
+    - name: "Install Fedora-specific OS packages (individual)"
+      when: ansible_os_family == "Fedora" and os_packages_fedora | length > 0
       become: yes
       dnf:
         name: "{{ item.package_name }}"
         state: present
-      loop: "{{ os_packages_redhat }}"
+      loop: "{{ os_packages_fedora }}"
       loop_control:
         label: "{{ item.name }}"
-      register: os_redhat_install_result
+      register: os_fedora_install_result
       ignore_errors: yes
 
     - name: "Install Arch-specific OS packages (individual)"
@@ -82,26 +82,13 @@
     - name: "Display failed OS package installations"
       debug:
         msg: "Failed to install {{ item.item.name }} ({{ item.item.package_name }}) - {{ item.msg }}"
-      loop: "{{ (os_common_install_result.results + os_debian_install_result.results + os_redhat_install_result.results + os_arch_install_result.results) | selectattr('failed') | list }}"
+      loop: "{{ (os_common_install_result.results + os_debian_install_result.results + os_fedora_install_result.results + os_arch_install_result.results) | selectattr('failed') | list }}"
       loop_control:
         label: "{{ item.item.name }}"
       when: 
-        - os_common_install_result is defined or os_debian_install_result is defined or os_redhat_install_result is defined or os_arch_install_result is defined
+        - os_common_install_result is defined or os_debian_install_result is defined or os_fedora_install_result is defined or os_arch_install_result is defined
 
     # --- AUR Package Installation with Individual Package Looping ---
-    # - name: "Install AUR packages (Arch only, individual)"
-    #   when: ansible_os_family == "Archlinux" and aur_packages | length > 0
-    #   become: yes
-    #   become_user: aur_builder
-    #   community.general.aur:
-    #     name: "{{ item }}"
-    #     state: present
-    #   loop: "{{ aur_packages }}"
-    #   environment:
-    #     HOME: "/home/aur_builder"
-    #   ignore_errors: yes
-    #   register: aur_install_result
-
     - name: "Install AUR packages (Arch only, individual)"
       when: ansible_os_family == "Archlinux" and aur_packages | length > 0
       become: yes
@@ -223,7 +210,6 @@
       debug:
         msg: |
           Package installation completed with detailed results above.
-          
           Note about Language Servers and Kate:
           Most language servers installed in the 'language-servers' group should work with Kate
           when you install the 'LSP Client' plugin in Kate's settings.

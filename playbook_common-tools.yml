@@ -14,45 +14,130 @@
 
   vars:
     common_packages:
-      - git
-      - curl
-      - fish
-      - lsd
-      - bat
-      - fzf
-      - zoxide
-      - duf
-      - mc
-      - entr
-      - tealdeer
-      - btop
-      - micro
-      - thefuck
-      - figlet
-      - cowsay
-      - fortune-mod
+      - name: "7zip"
+        package_name: "7zip"
+        description: "File archiver with high compression ratio"
+        installer: "os"
+      - name: "Git"
+        package_name: "git"
+        description: "Distributed version control system"
+        installer: "os"
+      - name: "cURL"
+        package_name: "curl"
+        description: "Command line tool for transferring data with URLs"
+        installer: "os"
+      - name: "rsync"
+        package_name: "rsync"
+        description: "A fast and versatile file copying tool for remote and local files"
+        installer: "os"
+      - name: "Fish Shell"
+        package_name: "fish"
+        description: "Smart and user-friendly command line shell"
+        installer: "os"
+      - name: "LSDeluxe"
+        package_name: "lsd"
+        description: "Modern ls command with icons and colors"
+        installer: "os"
+      - name: "Bat"
+        package_name: "bat"
+        description: "Cat clone with syntax highlighting and Git integration"
+        installer: "os"
+      - name: "Fuzzy Finder"
+        package_name: "fzf"
+        description: "Command-line fuzzy finder"
+        installer: "os"
+      - name: "Zoxide"
+        package_name: "zoxide"
+        description: "Smarter cd command for faster navigation"
+        installer: "os"
+      - name: "duf"
+        package_name: "duf"
+        description: "Better df alternative for disk usage analysis"
+        installer: "os"
+      - name: "Midnight Commander"
+        package_name: "mc"
+        description: "Classic visual file manager"
+        installer: "os"
+      - name: "entr"
+        package_name: "entr"
+        description: "Runs arbitrary commands when files change"
+        installer: "os"
+      - name: "tealdeer"
+        package_name: "tealdeer"
+        description: "Fast, Rust-based client for tldr pages"
+        installer: "os"
+      - name: "btop"
+        package_name: "btop"
+        description: "Modern and feature-rich resource monitor"
+        installer: "os"
+      - name: "micro"
+        package_name: "micro"
+        description: "Modern and intuitive terminal-based text editor"
+        installer: "os"
+      - name: "thefuck"
+        package_name: "thefuck"
+        description: "Corrects errors in previous console commands"
+        installer: "os"
+      - name: "figlet"
+        package_name: "figlet"
+        description: "Program for making large letters out of ordinary text"
+        installer: "os"
+      - name: "cowsay"
+        package_name: "cowsay"
+        description: "Generates ASCII art pictures of a cow with a message"
+        installer: "os"
+      - name: "fortune-mod"
+        package_name: "fortune-mod"
+        description: "Displays random, often humorous, adages"
+        installer: "os"
 
     debian_packages:
-      - 7zip
-      - fonts-firacode
-      - fortune-anarchism
-      - anarchism
+      - name: "FiraCode Fonts"
+        package_name: "fonts-firacode"
+        description: "Monospaced font with programming ligatures"
+        installer: "os"
+      - name: "Anarchism Fortunes"
+        package_name: "fortune-anarchism"
+        description: "Anarchist-themed fortune cookies"
+        installer: "os"
+      - name: "Anarchism"
+        package_name: "anarchism"
+        description: "Exhaustive exploration of Anarchist theory and practice"
+        installer: "os"
 
     fedora_packages:
-      - 7zip
-      - cascadia-code-nf-fonts
-      - chezmoi
+      - name: "Cascadia Code Fonts"
+        package_name: "cascadia-code-nf-fonts"
+        description: "Monospaced font with programming ligatures"
+        installer: "os"
+      - name: "Chezmoi"
+        package_name: "chezmoi"
+        description: "Dotfile manager"
+        installer: "os"
 
     arch_packages:
-      - 7zip
-      - ttf-firacode-nerd
-      - chezmoi
-      - base-devel
-      - git
+      - name: "FiraCode Nerd Font"
+        package_name: "ttf-firacode-nerd"
+        description: "Monospaced font with programming ligatures and icons"
+        installer: "os"
+      - name: "Chezmoi"
+        package_name: "chezmoi"
+        description: "Dotfile manager"
+        installer: "os"
+      - name: "Base Development"
+        package_name: "base-devel"
+        description: "Basic development tools for Arch Linux"
+        installer: "os"
 
     arch_aur_packages:
-      - fortune-mod-anarchism
-      - anarchism
+      - name: "Anarchism Fortunes AUR"
+        package_name: "fortune-mod-anarchism"
+        description: "Anarchist-themed fortune cookies (AUR)"
+        installer: "aur"
+      - name: "Anarchism AUR"
+        package_name: "anarchism"
+        description: "Exhaustive exploration of Anarchist theory (AUR)"
+        installer: "aur"  
 
   tasks:
     - name: "Install packages using package managers"
@@ -60,7 +145,7 @@
       vars:
         os_packages_common: "{{ common_packages }}"
         os_packages_debian: "{{ debian_packages }}"
-        os_packages_redhat: "{{ fedora_packages }}"
+        os_packages_fedora: "{{ fedora_packages }}"
         os_packages_arch: "{{ arch_packages }}"
         aur_packages: "{{ arch_aur_packages }}"
 
@@ -73,7 +158,7 @@
         state: link
 
     - name: "Install Chezmoi via official script (non-Arch systems)"
-      when: ansible_os_family != "Archlinux"
+      when: ansible_os_family == "Debian"
       become: yes
       shell: |
         sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /usr/local/bin
