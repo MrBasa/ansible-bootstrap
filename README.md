@@ -1,20 +1,21 @@
 # Ansible Bootstrap
 
-This repository contains a modular Ansible setup for bootstrapping Linux systems with development tools and utilities. The architecture uses configuration-driven playbooks that share a common package management system.
+This repository contains a modular Ansible setup for bootstrapping Linux systems with development tools and utilities.
+The architecture uses configuration-driven playbooks that share a common package management system.
 
 ## Quick Start
 
-1. **Run the bootstrap script to install and configure Ansible:**
+1. Run the bootstrap script to install and configure Ansible:
    ```bash
    curl -sSL https://raw.githubusercontent.com/mrbasa/ansible-bootstrap/main/bootstrap-ansible.sh | bash
    ```
 
-2. **Install common productivity tools:**
+2. Install common productivity tools:
    ```bash
    ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git playbook_common-tools.yml -K
    ```
 
-3. **Install common development tools:**
+3. Install common development tools:
    ```bash
    ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git playbook_dev-tools-common.yml -K
    ```
@@ -26,7 +27,7 @@ The system uses a modular approach where each playbook focuses on a specific cat
 - `playbook_ansible-dependencies.yml`: Foundation playbook that installs required Ansible collections and sets up AUR support for Arch Linux
 - `playbook_package-managers.yml`: Shared package installation engine that handles multiple package managers (OS packages, pip, cargo, npm, AUR, flatpak)
 - `playbook_common-tools.yml`: Installs common productivity tools and utilities that are useful across all development environments
-- `playbook_dev-tools.yml**: Installs development-specific tools, language servers, and programming environments using a configuration-driven approach
+- `playbook_dev-tools.yml`: Installs development-specific tools, language servers, and programming environments using a configuration-driven approach
 
 ## Available Playbooks
 
@@ -60,7 +61,7 @@ ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git playbook_dev-too
 
 New playbooks can be created by following the same pattern:
 
-1. Define packages in the playbook's **vars** section using the standardized package structure
+1. Define packages in the playbook's `vars` section using the standardized package structure
 2. Import `playbook_package-managers.yml` to handle installation
 3. Add any post-installation tasks specific to those packages
 
