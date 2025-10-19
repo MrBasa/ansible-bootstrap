@@ -14,19 +14,34 @@
     flatpak_packages: "{{ flatpak_packages | default([]) }}"
     failed_installations: []
 
+# - name: "Display package installation plan"
+#   debug:
+#     msg: |
+#       Installation Summary:
+#       OS Packages (Common): {{ os_packages_common | length }}
+#       OS Packages (Debian): {{ os_packages_debian | length }}
+#       OS Packages (Fedora): {{ os_packages_fedora | length }} 
+#       OS Packages (Arch): {{ os_packages_arch | length }}
+#       PIP Packages: {{ pip_packages | length }}
+#       Cargo Packages: {{ cargo_packages | length }}
+#       NPM Packages: {{ npm_packages | length }}
+#       AUR Packages: {{ aur_packages | length }}
+#       Flatpak Packages: {{ flatpak_packages | length }}
+
 - name: "Display package installation plan"
-  debug:
-    msg: |
-      Installation Summary:
-      OS Packages (Common): {{ os_packages_common | length }}
-      OS Packages (Debian): {{ os_packages_debian | length }}
-      OS Packages (Fedora): {{ os_packages_fedora | length }} 
-      OS Packages (Arch): {{ os_packages_arch | length }}
-      PIP Packages: {{ pip_packages | length }}
-      Cargo Packages: {{ cargo_packages | length }}
-      NPM Packages: {{ npm_packages | length }}
-      AUR Packages: {{ aur_packages | length }}
-      Flatpak Packages: {{ flatpak_packages | length }}
+  command:
+    cmd: |
+      echo "=== PACKAGE INSTALLATION PLAN ==="
+      echo "OS Packages - Common: {{ os_packages_common | length }}"
+      echo "OS Packages - Debian: {{ os_packages_debian | length }}"
+      echo "OS Packages - Fedora: {{ os_packages_fedora | length }}"
+      echo "OS Packages - Arch: {{ os_packages_arch | length }}"
+      echo "PIP Packages: {{ pip_packages | length }}"
+      echo "Cargo Packages: {{ cargo_packages | length }}"
+      echo "NPM Packages: {{ npm_packages | length }}"
+      echo "AUR Packages: {{ aur_packages | length }}"
+      echo "Flatpak Packages: {{ flatpak_packages | length }}"
+  changed_when: false
 
 # --- Package Manager Setup (HARD FAILURES) ---
 - name: "Ensure package managers are available"

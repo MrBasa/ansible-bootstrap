@@ -1,0 +1,89 @@
+# playbook_sample-template.yml
+- name: "Include Ansible Dependencies"
+  import_playbook: playbook_ansible-dependencies.yml
+
+- name: "Sample Package Installation"
+  hosts: localhost
+  connection: local
+  gather_facts: true
+
+  vars:
+    # OS Packages (Common across all distributions)
+    os_packages_common:
+      - name: "Example Common Package"
+        package_name: "example-common"
+        description: "An example package available on all distributions"
+        installer: "os"
+
+    # OS Packages (Debian/Ubuntu specific)
+    os_packages_debian:
+      - name: "Example Debian Package"
+        package_name: "example-debian"
+        description: "An example package for Debian/Ubuntu"
+        installer: "os"
+
+    # OS Packages (Fedora specific)
+    os_packages_fedora:
+      - name: "Example Fedora Package"
+        package_name: "example-fedora"
+        description: "An example package for Fedora"
+        installer: "os"
+
+    # OS Packages (Arch specific)
+    os_packages_arch:
+      - name: "Example Arch Package"
+        package_name: "example-arch"
+        description: "An example package for Arch Linux"
+        installer: "os"
+
+    # PIP Packages
+    pip_packages:
+      - name: "Example PIP Package"
+        package_name: "example-pip-package"
+        description: "An example Python package installed via pip"
+        installer: "pip"
+
+    # Cargo Packages
+    cargo_packages:
+      - name: "Example Cargo Package"
+        package_name: "example-cargo-package"
+        description: "An example Rust package installed via cargo"
+        installer: "cargo"
+
+    # NPM Packages
+    npm_packages:
+      - name: "Example NPM Package"
+        package_name: "example-npm-package"
+        description: "An example Node.js package installed via npm"
+        installer: "npm"
+
+    # AUR Packages (Arch Linux only)
+    aur_packages:
+      - name: "Example AUR Package"
+        package_name: "example-aur-package"
+        description: "An example package from the AUR"
+        installer: "aur"
+
+    # Flatpak Packages
+    flatpak_packages:
+      - name: "Example Flatpak Package"
+        package_name: "org.example.App"
+        description: "An example Flatpak application"
+        installer: "flatpak"
+
+  tasks:
+    # --- Install packages using package managers ---
+    - name: "Install packages using package managers"
+      import_tasks: playbook_package-managers.yml
+
+    # --- Post-installation special tasks ---
+    - name: "Example special configuration task"
+      debug:
+        msg: "This is where you would put any special post-installation tasks"
+      # Example actual task:
+      # - name: "Restart example service"
+      #   become: yes
+      #   systemd:
+      #     name: example-service
+      #     state: restarted
+      #   when: "'example-package' in installed_packages"
