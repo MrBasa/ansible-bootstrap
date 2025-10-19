@@ -9,12 +9,6 @@
         name: community.general
         state: present
 
-    - name: Install kewlfft.aur collection for AUR package management
-      when: ansible_os_family == "Archlinux"
-      ansible.builtin.ansible_galaxy:
-        name: kewlfft.aur
-        state: present
-
     - name: "Create a dedicated user for AUR builds (Arch only)"
       when: ansible_os_family == "Archlinux"
       ansible.builtin.user:
