@@ -11,6 +11,7 @@
 
     - name: "Create a dedicated user for AUR builds (Arch only)"
       when: ansible_os_family == "Archlinux"
+      become: yes
       ansible.builtin.user:
         name: aur_builder
         state: present
