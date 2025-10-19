@@ -74,5 +74,5 @@ This modular approach allows for easy creation of specialized playbooks for diff
 
 - If you encounter warnings about host patterns, these are safe to ignore and don't affect functionality
 - Use the `-v` flag for more detailed output when debugging issues
-- Failed package installations are logged to `/tmp/ansible_package_failures.log` for review
+- Failed package installations are logged to `~/ansible_package_failures.log` for review
 - Playbooks can be safely re-run to complete any failed installations
