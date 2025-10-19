@@ -1,215 +1,212 @@
 # playbook_package-managers.yml
-- name: Install packages using various package managers
-  hosts: localhost
-  connection: local
-  vars:
-    os_packages_common: []
-    os_packages_debian: []
-    os_packages_fedora: []
-    os_packages_arch: []
-    pip_packages: []
-    cargo_packages: []
-    npm_packages: []
-    aur_packages: []
-    flatpak_packages: []
+# Installs packages using various package managers.
+# Expects following vars:
+#   os_packages_common: []
+#   os_packages_debian: []
+#   os_packages_fedora: []
+#   os_packages_arch: []
+#   pip_packages: []
+#   cargo_packages: []
+#   npm_packages: []
+#   aur_packages: []
+#   flatpak_packages: []
 
-  tasks:
-    # --- Display Installation Plan ---
-    - name: "Display package installation plan"
-      debug:
-        msg: |
-          Installation Summary:
-          OS Packages (Common): {{ os_packages_common | length }}
-          OS Packages (Debian): {{ os_packages_debian | length }}
-          OS Packages (Fedora): {{ os_packages_fedora | length }} 
-          OS Packages (Arch): {{ os_packages_arch | length }}
-          PIP Packages: {{ pip_packages | length }}
-          Cargo Packages: {{ cargo_packages | length }}
-          NPM Packages: {{ npm_packages | length }}
-          AUR Packages: {{ aur_packages | length }}
-          Flatpak Packages: {{ flatpak_packages | length }}
+# --- Display Installation Plan ---
+- name: "Display package installation plan"
+  debug:
+    msg: |
+      Installation Summary:
+      OS Packages (Common): {{ os_packages_common | length }}
+      OS Packages (Debian): {{ os_packages_debian | length }}
+      OS Packages (Fedora): {{ os_packages_fedora | length }} 
+      OS Packages (Arch): {{ os_packages_arch | length }}
+      PIP Packages: {{ pip_packages | length }}
+      Cargo Packages: {{ cargo_packages | length }}
+      NPM Packages: {{ npm_packages | length }}
+      AUR Packages: {{ aur_packages | length }}
+      Flatpak Packages: {{ flatpak_packages | length }}
 
-    # --- OS Package Installation with Individual Package Looping ---
-    - name: "Install common OS packages (individual)"
-      when: ansible_os_family == "Debian" and os_packages_common | length > 0
-      become: yes
-      apt:
-        name: "{{ item.package_name }}"
-        state: present
-      loop: "{{ os_packages_common }}"
-      loop_control:
-        label: "{{ item.name }}"
-      register: os_common_install_result
-      ignore_errors: yes
+# --- OS Package Installation with Individual Package Looping ---
+- name: "Install common OS packages (individual)"
+  when: ansible_os_family == "Debian" and os_packages_common | length > 0
+  become: yes
+  apt:
+    name: "{{ item.package_name }}"
+    state: present
+  loop: "{{ os_packages_common }}"
+  loop_control:
+    label: "{{ item.name }}"
+  register: os_common_install_result
+  ignore_errors: yes
 
-    - name: "Install Debian-specific OS packages (individual)"
-      when: ansible_os_family == "Debian" and os_packages_debian | length > 0
-      become: yes
-      apt:
-        name: "{{ item.package_name }}"
-        state: present
-      loop: "{{ os_packages_debian }}"
-      loop_control:
-        label: "{{ item.name }}"
-      register: os_debian_install_result
-      ignore_errors: yes
+- name: "Install Debian-specific OS packages (individual)"
+  when: ansible_os_family == "Debian" and os_packages_debian | length > 0
+  become: yes
+  apt:
+    name: "{{ item.package_name }}"
+    state: present
+  loop: "{{ os_packages_debian }}"
+  loop_control:
+    label: "{{ item.name }}"
+  register: os_debian_install_result
+  ignore_errors: yes
 
-    - name: "Install Fedora-specific OS packages (individual)"
-      when: ansible_os_family == "Fedora" and os_packages_fedora | length > 0
-      become: yes
-      dnf:
-        name: "{{ item.package_name }}"
-        state: present
-      loop: "{{ os_packages_fedora }}"
-      loop_control:
-        label: "{{ item.name }}"
-      register: os_fedora_install_result
-      ignore_errors: yes
+- name: "Install Fedora-specific OS packages (individual)"
+  when: ansible_os_family == "Fedora" and os_packages_fedora | length > 0
+  become: yes
+  dnf:
+    name: "{{ item.package_name }}"
+    state: present
+  loop: "{{ os_packages_fedora }}"
+  loop_control:
+    label: "{{ item.name }}"
+  register: os_fedora_install_result
+  ignore_errors: yes
 
-    - name: "Install Arch-specific OS packages (individual)"
-      when: ansible_os_family == "Archlinux" and os_packages_arch | length > 0
-      become: yes
-      pacman:
-        name: "{{ item.package_name }}"
-        state: present
-      loop: "{{ os_packages_arch }}"
-      loop_control:
-        label: "{{ item.name }}"
-      register: os_arch_install_result
-      ignore_errors: yes
+- name: "Install Arch-specific OS packages (individual)"
+  when: ansible_os_family == "Archlinux" and os_packages_arch | length > 0
+  become: yes
+  pacman:
+    name: "{{ item.package_name }}"
+    state: present
+  loop: "{{ os_packages_arch }}"
+  loop_control:
+    label: "{{ item.name }}"
+  register: os_arch_install_result
+  ignore_errors: yes
 
-    # --- Detailed OS Installation Results ---
-    - name: "Display failed OS package installations"
-      debug:
-        msg: "Failed to install {{ item.item.name }} ({{ item.item.package_name }}) - {{ item.msg }}"
-      loop: "{{ (os_common_install_result.results + os_debian_install_result.results + os_fedora_install_result.results + os_arch_install_result.results) | selectattr('failed') | list }}"
-      loop_control:
-        label: "{{ item.item.name }}"
-      when: 
-        - os_common_install_result is defined or os_debian_install_result is defined or os_fedora_install_result is defined or os_arch_install_result is defined
+# --- Detailed OS Installation Results ---
+- name: "Display failed OS package installations"
+  debug:
+    msg: "Failed to install {{ item.item.name }} ({{ item.item.package_name }}) - {{ item.msg }}"
+  loop: "{{ (os_common_install_result.results + os_debian_install_result.results + os_fedora_install_result.results + os_arch_install_result.results) | selectattr('failed') | list }}"
+  loop_control:
+    label: "{{ item.item.name }}"
+  when: 
+    - os_common_install_result is defined or os_debian_install_result is defined or os_fedora_install_result is defined or os_arch_install_result is defined
 
-    # --- AUR Package Installation with Individual Package Looping ---
-    - name: "Install AUR packages (Arch only, individual)"
-      when: ansible_os_family == "Archlinux" and aur_packages | length > 0
-      become: yes
-      become_user: aur_builder
-      kewlfft.aur.aur:
-        name: "{{ item }}"
-        state: present
-      loop: "{{ aur_packages }}"
-      environment:
-        HOME: "/home/aur_builder"
-      ignore_errors: yes
-      register: aur_install_result
+# --- AUR Package Installation with Individual Package Looping ---
+- name: "Install AUR packages (Arch only, individual)"
+  when: ansible_os_family == "Archlinux" and aur_packages | length > 0
+  become: yes
+  become_user: aur_builder
+  kewlfft.aur.aur:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ aur_packages }}"
+  environment:
+    HOME: "/home/aur_builder"
+  ignore_errors: yes
+  register: aur_install_result
 
-    - name: "Display failed AUR package installations"
-      debug:
-        msg: "Failed to install AUR package: {{ item.item }}"
-      loop: "{{ aur_install_result.results | selectattr('failed') | list }}"
-      when: aur_install_result is defined
+- name: "Display failed AUR package installations"
+  debug:
+    msg: "Failed to install AUR package: {{ item.item }}"
+  loop: "{{ aur_install_result.results | selectattr('failed') | list }}"
+  when: aur_install_result is defined
 
-    # --- Pip Package Installation with Individual Package Looping ---
-    - name: "Check if pip is available"
-      when: pip_packages | length > 0
-      command: which pip3 || which pip
-      register: pip_check
-      changed_when: false
-      ignore_errors: yes
+# --- Pip Package Installation with Individual Package Looping ---
+- name: "Check if pip is available"
+  when: pip_packages | length > 0
+  command: which pip3 || which pip
+  register: pip_check
+  changed_when: false
+  ignore_errors: yes
 
-    - name: "Install pip packages (individual)"
-      when: pip_packages | length > 0 and pip_check.rc == 0
-      become: yes
-      pip:
-        name: "{{ item.package_name }}"
-        state: present
-      loop: "{{ pip_packages }}"
-      loop_control:
-        label: "{{ item.name }}"
-      ignore_errors: yes
-      register: pip_install_result
+- name: "Install pip packages (individual)"
+  when: pip_packages | length > 0 and pip_check.rc == 0
+  become: yes
+  pip:
+    name: "{{ item.package_name }}"
+    state: present
+  loop: "{{ pip_packages }}"
+  loop_control:
+    label: "{{ item.name }}"
+  ignore_errors: yes
+  register: pip_install_result
 
-    - name: "Display failed pip package installations"
-      debug:
-        msg: "Failed to install {{ item.item.name }} ({{ item.item.package_name }}) via pip - {{ item.msg }}"
-      loop: "{{ pip_install_result.results | selectattr('failed') | list }}"
-      when: pip_install_result is defined
+- name: "Display failed pip package installations"
+  debug:
+    msg: "Failed to install {{ item.item.name }} ({{ item.item.package_name }}) via pip - {{ item.msg }}"
+  loop: "{{ pip_install_result.results | selectattr('failed') | list }}"
+  when: pip_install_result is defined
 
-    - name: "Warn if pip is not available but pip packages were requested"
-      when: pip_packages | length > 0 and pip_check.rc != 0
-      debug:
-        msg: "pip is not available but pip packages were requested"
+- name: "Warn if pip is not available but pip packages were requested"
+  when: pip_packages | length > 0 and pip_check.rc != 0
+  debug:
+    msg: "pip is not available but pip packages were requested"
 
-    # --- Cargo Package Installation with Individual Package Looping ---
-    - name: "Check if cargo is available"
-      when: cargo_packages | length > 0
-      command: which cargo
-      register: cargo_check
-      changed_when: false
-      ignore_errors: yes
+# --- Cargo Package Installation with Individual Package Looping ---
+- name: "Check if cargo is available"
+  when: cargo_packages | length > 0
+  command: which cargo
+  register: cargo_check
+  changed_when: false
+  ignore_errors: yes
 
-    - name: "Install cargo if missing"
-      when: cargo_packages | length > 0 and cargo_check.rc != 0
-      become: yes
-      shell: |
-        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-      args:
-        creates: "{{ ansible_env.HOME }}/.cargo/bin/cargo"
+- name: "Install cargo if missing"
+  when: cargo_packages | length > 0 and cargo_check.rc != 0
+  become: yes
+  shell: |
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+  args:
+    creates: "{{ ansible_env.HOME }}/.cargo/bin/cargo"
 
-    - name: "Install cargo packages (individual)"
-      when: cargo_packages | length > 0
-      become: yes
-      community.general.cargo:
-        name: "{{ item.package_name }}"
-        state: present
-      loop: "{{ cargo_packages }}"
-      loop_control:
-        label: "{{ item.name }}"
-      ignore_errors: yes
-      register: cargo_install_result
+- name: "Install cargo packages (individual)"
+  when: cargo_packages | length > 0
+  become: yes
+  community.general.cargo:
+    name: "{{ item.package_name }}"
+    state: present
+  loop: "{{ cargo_packages }}"
+  loop_control:
+    label: "{{ item.name }}"
+  ignore_errors: yes
+  register: cargo_install_result
 
-    - name: "Display failed cargo package installations"
-      debug:
-        msg: "Failed to install {{ item.item.name }} ({{ item.item.package_name }}) via cargo - {{ item.msg }}"
-      loop: "{{ cargo_install_result.results | selectattr('failed') | list }}"
-      when: cargo_install_result is defined
+- name: "Display failed cargo package installations"
+  debug:
+    msg: "Failed to install {{ item.item.name }} ({{ item.item.package_name }}) via cargo - {{ item.msg }}"
+  loop: "{{ cargo_install_result.results | selectattr('failed') | list }}"
+  when: cargo_install_result is defined
 
-    # --- NPM Package Installation with Individual Package Looping ---
-    - name: "Check if npm is available"
-      when: npm_packages | length > 0
-      command: which npm
-      register: npm_check
-      changed_when: false
-      ignore_errors: yes
+# --- NPM Package Installation with Individual Package Looping ---
+- name: "Check if npm is available"
+  when: npm_packages | length > 0
+  command: which npm
+  register: npm_check
+  changed_when: false
+  ignore_errors: yes
 
-    - name: "Install npm packages (individual)"
-      when: npm_packages | length > 0 and npm_check.rc == 0
-      become: yes
-      npm:
-        name: "{{ item.package_name }}"
-        state: present
-        global: yes
-      loop: "{{ npm_packages }}"
-      loop_control:
-        label: "{{ item.name }}"
-      ignore_errors: yes
-      register: npm_install_result
+- name: "Install npm packages (individual)"
+  when: npm_packages | length > 0 and npm_check.rc == 0
+  become: yes
+  npm:
+    name: "{{ item.package_name }}"
+    state: present
+    global: yes
+  loop: "{{ npm_packages }}"
+  loop_control:
+    label: "{{ item.name }}"
+  ignore_errors: yes
+  register: npm_install_result
 
-    - name: "Display failed npm package installations"
-      debug:
-        msg: "Failed to install {{ item.item.name }} ({{ item.item.package_name }}) via npm - {{ item.msg }}"
-      loop: "{{ npm_install_result.results | selectattr('failed') | list }}"
-      when: npm_install_result is defined
+- name: "Display failed npm package installations"
+  debug:
+    msg: "Failed to install {{ item.item.name }} ({{ item.item.package_name }}) via npm - {{ item.msg }}"
+  loop: "{{ npm_install_result.results | selectattr('failed') | list }}"
+  when: npm_install_result is defined
 
-    - name: "Warn if npm is not available but npm packages were requested"
-      when: npm_packages | length > 0 and npm_check.rc != 0
-      debug:
-        msg: "npm is not available but npm packages were requested"
+- name: "Warn if npm is not available but npm packages were requested"
+  when: npm_packages | length > 0 and npm_check.rc != 0
+  debug:
+    msg: "npm is not available but npm packages were requested"
 
-    # --- Installation Summary ---
-    - name: "Display installation completion summary"
-      debug:
-        msg: |
-          Package installation completed with detailed results above.
-          Note about Language Servers and Kate:
-          Most language servers installed in the 'language-servers' group should work with Kate
-          when you install the 'LSP Client' plugin in Kate's settings.
+# --- Installation Summary ---
+- name: "Display installation completion summary"
+  debug:
+    msg: |
+      Package installation completed with detailed results above.
+      Note about Language Servers and Kate:
+      Most language servers installed in the 'language-servers' group should work with Kate
+      when you install the 'LSP Client' plugin in Kate's settings.
