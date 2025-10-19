@@ -222,11 +222,11 @@
     - name: "Record package failure"
       set_fact:
         failed_installations: |
-        "{{ failed_installations + [{
+        {{ failed_installations + [{
           'name': failed_package_name,
           'package_name': failed_package_id, 
           'msg': failed_error_msg
-        }] }}"
+        }] }}
 
     - name: "Log failure to file"
       lineinfile:
