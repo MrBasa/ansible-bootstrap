@@ -8,9 +8,6 @@
   hosts: localhost
   connection: local
   gather_facts: true
-  # Suppress Python warnings.
-  # 'ansible_env' will NOT be available to playbook.
-  #gather_facts: false
 
   vars:
     common_packages:

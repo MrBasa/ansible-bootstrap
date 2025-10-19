@@ -99,7 +99,7 @@
     - name: "Install Arch-specific OS packages"
       when: ansible_os_family == "Archlinux" and os_packages_arch | length > 0
       become: yes
-      pacman:
+      package:
         name: "{{ item.package_name }}"
         state: present
       loop: "{{ os_packages_arch }}"
