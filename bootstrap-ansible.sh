@@ -20,28 +20,6 @@ handle_error() {
 }
 
 # --- GitHub authentication function ---
-setup_github_auth2() {
-	echo "🔧 Setting up GitHub CLI Authentication..."
-    if gh auth status &>/dev/null; then
-        echo "✅ GitHub CLI is already authenticated."
-        return 0
-    fi
-    
-    echo "Starting device-based authentication..."
-    echo "You will need to visit https://github.com/login/device and enter the code below."
-    
-    # Use device flow (non-interactive, terminal-friendly)
-    if gh auth login --device-code -h github.com -p https -s read:org,repo,workflow; then
-        echo "✅ GitHub authentication successful!"
-        return 0
-    else
-        echo "❌ GitHub authentication failed."
-        echo "You can manually run: gh auth login --device-code"
-        return 1
-    fi
-}
-
-# --- GitHub authentication function ---
 setup_github_auth() {
 	echo "🔧 Setting up GitHub CLI Authentication..."
     if gh auth status &>/dev/null; then
@@ -64,57 +42,29 @@ setup_github_auth() {
 }
 
 # --- Git configuration function ---
-setup_git_config2() {
-    echo "🔧 Setting up Git configuration..."
-    
-    # Set Git user name if not configured
-    if ! git config --global --get user.name > /dev/null; then
-        echo "Please enter your Git user name:"
-        read -r git_name
-        git config --global user.name "$git_name"
-        echo "-> ✅ Set Git user.name to: $git_name"
-    else
-        echo "-> ✅ Git user.name already configured: $(git config --global user.name)"
-    fi
-    
-    # Set Git user email if not configured
-    if ! git config --global --get user.email > /dev/null; then
-        echo "Please enter your Git user email:"
-        read -r git_email
-        git config --global user.email "$git_email"
-        echo "-> ✅ Set Git user.email to: $git_email"
-    else
-        echo "-> ✅ Git user.email already configured: $(git config --global user.email)"
-    fi
-    
-    # Set some sensible defaults
-    git config --global pull.rebase false
-    git config --global init.defaultBranch main
-    echo "✅ Git configuration complete!"
-}
-
-# --- Git configuration function ---
 setup_git_config() {
     echo "🔧 Setting up Git configuration..."
     
-    # Set Git user name if not configured
-    if ! git config --global --get user.name > /dev/null; then
+    # Set Git user name if not configured or empty/whitespace
+    current_name=$(git config --global --get user.name 2>/dev/null || echo "")
+    if [ -z "${current_name// }" ]; then
         echo "Please enter your Git user name:"
         read -r git_name < /dev/tty
         git config --global user.name "$git_name"
         echo "✅ Set Git user.name to: $git_name"
     else
-        echo "✅ Git user.name already configured: $(git config --global user.name)"
+        echo "✅ Git user.name already configured:" $current_name
     fi
     
-    # Set Git user email if not configured  
-    if ! git config --global --get user.email > /dev/null; then
+	# Set Git user email if not configured or empty/whitespace
+    current_email=$(git config --global --get user.email 2>/dev/null || echo "")
+    if [ -z "${current_email// }" ]; then
         echo "Please enter your Git user email:"
         read -r git_email < /dev/tty
         git config --global user.email "$git_email"
         echo "✅ Set Git user.email to: $git_email"
     else
-        echo "✅ Git user.email already configured: $(git config --global user.email)"
+        echo "✅ Git user.email already configured:" $current_email
     fi
     
     # Set some sensible defaults
