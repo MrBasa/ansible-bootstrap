@@ -12,7 +12,6 @@
     cargo_packages: "{{ cargo_packages | default([]) }}"
     flatpak_packages: "{{ flatpak_packages | default([]) }}"
     brew_packages: "{{ brew_packages | default([]) }}"
-    #all_install_results: []
 
 # --- Package Manager Setup (HARD FAILURES) ---
 - name: "Ensure package managers are available"
@@ -207,4 +206,4 @@
 # --- Final Summary ---
 - name: "Display installation completion"
   debug:
-    msg: "Package installation completed!"
+    msg: "Package installation process finished. Check above for any errors."
