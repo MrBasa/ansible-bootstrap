@@ -20,7 +20,7 @@ handle_error() {
 }
 
 # --- GitHub authentication function ---
-setup_github_auth() {
+setup_github_auth2() {
 	echo "🔧 Setting up GitHub CLI Authentication..."
     if gh auth status &>/dev/null; then
         echo "✅ GitHub CLI is already authenticated."
@@ -41,8 +41,30 @@ setup_github_auth() {
     fi
 }
 
+# --- GitHub authentication function ---
+setup_github_auth() {
+	echo "🔧 Setting up GitHub CLI Authentication..."
+    if gh auth status &>/dev/null; then
+        echo "✅ GitHub CLI is already authenticated."
+        return 0
+    fi
+    
+    echo "Starting device-based authentication..."
+     
+    # Use BROWSER=false to prevent trying to open a browser
+    # This triggers the device flow with manual code entry
+    if BROWSER=false gh auth login --web -h github.com -p https -s read:org,repo,workflow; then
+        echo "✅ GitHub authentication successful!"
+        return 0
+    else
+        echo "❌ GitHub authentication failed."
+        echo "You can manually run: BROWSER=false gh auth login --web"
+        return 1
+    fi
+}
+
 # --- Git configuration function ---
-setup_git_config() {
+setup_git_config2() {
     echo "🔧 Setting up Git configuration..."
     
     # Set Git user name if not configured
@@ -71,7 +93,37 @@ setup_git_config() {
     echo "✅ Git configuration complete!"
 }
 
-# --- SCRIPT BEGIN ---
+# --- Git configuration function ---
+setup_git_config() {
+    echo "🔧 Setting up Git configuration..."
+    
+    # Set Git user name if not configured
+    if ! git config --global --get user.name > /dev/null; then
+        echo "Please enter your Git user name:"
+        read -r git_name < /dev/tty
+        git config --global user.name "$git_name"
+        echo "✅ Set Git user.name to: $git_name"
+    else
+        echo "✅ Git user.name already configured: $(git config --global user.name)"
+    fi
+    
+    # Set Git user email if not configured  
+    if ! git config --global --get user.email > /dev/null; then
+        echo "Please enter your Git user email:"
+        read -r git_email < /dev/tty
+        git config --global user.email "$git_email"
+        echo "✅ Set Git user.email to: $git_email"
+    else
+        echo "✅ Git user.email already configured: $(git config --global user.email)"
+    fi
+    
+    # Set some sensible defaults
+    git config --global pull.rebase false
+    git config --global init.defaultBranch main
+    echo "✅ Git configuration complete!"
+}
+
+# --- SCRIPT BODY BEGIN ---
 # --- Detect distribution and install Ansible ---
 if command -v apt >/dev/null 2>&1; then
     echo "📦 Detected Debian/Ubuntu, installing ansible-core, git, and gh..."
