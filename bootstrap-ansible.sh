@@ -4,13 +4,13 @@ set -euo pipefail
 trap 'handle_error ${LINENO}' ERR
 
 # Log file location
-LOG_FILE="${HOME}/bootstrap-$(date +%Y%m%d_%H%M%S).log"
+LOG_FILE="${HOME}/bootstrap-$(date +%Y%m%d).log"
 
 # Start logging
 exec > >(tee -a "$LOG_FILE")
 exec 2>&1
 
-echo "🚀 Starting Ansible Bootstrap..."
+echo "🚀 Starting Ansible Bootstrap...  - " $(date +"%T")
 
 # --- Error handler function ---
 handle_error() {
@@ -107,5 +107,5 @@ echo "📥 Running Ansible playbook..."
 ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git playbook_ansible-dependencies.yml -K
 echo "✅ Ansible Dependencies playbook complete!"
 
-echo "🎉 Bootstrap complete!"
+echo "🎉 Bootstrap complete!  - " $(date +"%T")
 exit 0
