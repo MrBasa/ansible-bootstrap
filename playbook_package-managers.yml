@@ -83,8 +83,32 @@
           environment:
             NONINTERACTIVE: 1
 
+# --- Update OS Package Manager Caches ---
+- name: "Update package manager caches"
+  block:
+    # For Debian:
+    - name: "Update APT cache (Debian)"
+      when: ansible_os_family == "Debian"
+      become: yes
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    # For Fedora:
+    - name: "Update DNF cache (Fedora)"
+      when: ansible_os_family == "RedHat"
+      become: yes
+      dnf:
+        update_cache: yes
+
+    # For Arch:
+    - name: "Update Pacman database (Arch)"
+      when: ansible_os_family == "Archlinux"
+      become: yes
+      community.general.pacman:
+        update_cache: yes
+
 # --- Package Installation (CONTINUE ON INDIVIDUAL FAILURES) ---
-# --- Package Installation (SIMPLE APPROACH) ---
 - name: "Install all packages with simple error handling"
   block:
     # --- OS Packages ---
@@ -94,7 +118,7 @@
       become: yes
       package:
         name: "{{ item.package_name }}"
-        state: present
+        state: latest
       loop: "{{ os_packages_common + os_packages_debian }}"
       loop_control:
         label: "Installing OS package: {{ item.name }} - {{ item.package_name }}"
@@ -106,7 +130,7 @@
       become: yes
       package:
         name: "{{ item.package_name }}"
-        state: present
+        state: latest
       loop: "{{ os_packages_common + os_packages_fedora }}"
       loop_control:
         label: "Installing OS package: {{ item.name }} - {{ item.package_name }}"
@@ -118,8 +142,8 @@
       become: yes
       community.general.pacman:
         name: "{{ item.package_name }}"
-        state: present
-        extra_args: "--noconfirm --needed"
+        state: latest
+        #extra_args: "--noconfirm --needed"
       loop: "{{ os_packages_common + os_packages_arch }}"
       loop_control:
         label: "Installing OS package: {{ item.name }} - {{ item.package_name }}"
@@ -133,7 +157,7 @@
       become_user: aur_builder
       kewlfft.aur.aur:
         name: "{{ item.package_name }}"
-        state: present
+        state: latest
       loop: "{{ aur_packages }}"
       loop_control:
         label: "Installing AUR package: {{ item.name }} - {{ item.package_name }}"
@@ -147,7 +171,7 @@
       become: yes
       pip:
         name: "{{ item.package_name }}"
-        state: present
+        state: latest
       loop: "{{ pip_packages }}"
       loop_control:
         label: "Installing PIP package: {{ item.name }} - {{ item.package_name }}"
@@ -159,7 +183,7 @@
       become: yes
       npm:
         name: "{{ item.package_name }}"
-        state: present
+        state: latest
         global: yes
       loop: "{{ npm_packages }}"
       loop_control:
@@ -172,7 +196,7 @@
       become: yes
       community.general.cargo:
         name: "{{ item.package_name }}"
-        state: present
+        state: latest
       loop: "{{ cargo_packages }}"
       loop_control:
         label: "Installing Cargo package: {{ item.name }} - {{ item.package_name }}"
@@ -184,7 +208,7 @@
       become: yes
       community.general.flatpak:
         name: "{{ item.package_name }}"
-        state: present
+        state: latest
         method: system
       loop: "{{ flatpak_packages }}"
       loop_control:
@@ -197,7 +221,7 @@
       become: yes
       community.general.homebrew:
         name: "{{ item.package_name }}"
-        state: present
+        state: latest
       loop: "{{ brew_packages }}"
       loop_control:
         label: "Installing Brew package: {{ item.name }} - {{ item.package_name }}"

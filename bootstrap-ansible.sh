@@ -19,6 +19,10 @@ else
 fi
 
 echo "✅ Ansible installed successfully!"
+echo "📦 Installing community.general Galaxy collection..."
+ansible-galaxy collection install community.general
+
+echo "✅ Galaxy community.general installed successfully!"
 echo "📥 Running Ansible playbook..."
 
 # Run ansible-pull with the repository to complete setting up Ansible
