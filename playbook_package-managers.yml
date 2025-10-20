@@ -12,7 +12,7 @@
     cargo_packages: "{{ cargo_packages | default([]) }}"
     flatpak_packages: "{{ flatpak_packages | default([]) }}"
     brew_packages: "{{ brew_packages | default([]) }}"
-    all_install_results: []
+    #all_install_results: []
 
 # --- Package Manager Setup (HARD FAILURES) ---
 - name: "Ensure package managers are available"
@@ -85,7 +85,8 @@
             NONINTERACTIVE: 1
 
 # --- Package Installation (CONTINUE ON INDIVIDUAL FAILURES) ---
-- name: "Install all packages and collect results"
+# --- Package Installation (SIMPLE APPROACH) ---
+- name: "Install all packages with simple error handling"
   block:
     # --- OS Packages ---
     # For Debian:
@@ -99,7 +100,6 @@
       loop_control:
         label: "Installing OS package: {{ item.name }} - {{ item.package_name }}"
       ignore_errors: yes
-      register: debian_results
 
     # For Fedora:
     - name: "Install Fedora OS packages (common + specific)"
@@ -112,7 +112,6 @@
       loop_control:
         label: "Installing OS package: {{ item.name }} - {{ item.package_name }}"
       ignore_errors: yes
-      register: fedora_results
 
     # For Arch:
     - name: "Install Arch OS packages (common + specific)"
@@ -126,7 +125,6 @@
       loop_control:
         label: "Installing OS package: {{ item.name }} - {{ item.package_name }}"
       ignore_errors: yes
-      register: arch_results
 
     # --- Other Packages ---
     # AUR Packages
@@ -143,7 +141,6 @@
       environment:
         HOME: "/home/aur_builder"
       ignore_errors: yes
-      register: aur_results
 
     # PIP Packages
     - name: "Install pip packages"
@@ -156,7 +153,6 @@
       loop_control:
         label: "Installing PIP package: {{ item.name }} - {{ item.package_name }}"
       ignore_errors: yes
-      register: pip_results
 
     # NPM Packages
     - name: "Install npm packages"
@@ -170,7 +166,6 @@
       loop_control:
         label: "Installing NPM package: {{ item.name }} - {{ item.package_name }}"
       ignore_errors: yes
-      register: npm_results
 
     # Cargo Packages
     - name: "Install cargo packages"
@@ -183,7 +178,6 @@
       loop_control:
         label: "Installing Cargo package: {{ item.name }} - {{ item.package_name }}"
       ignore_errors: yes
-      register: cargo_results
 
     # Flatpak Packages
     - name: "Install flatpak packages"
@@ -197,7 +191,6 @@
       loop_control:
         label: "Installing Flatpak package: {{ item.name }} - {{ item.package_name }}"
       ignore_errors: yes
-      register: flatpak_results
 
     # Homebrew Packages
     - name: "Install brew packages"
@@ -210,58 +203,8 @@
       loop_control:
         label: "Installing Brew package: {{ item.name }} - {{ item.package_name }}"
       ignore_errors: yes
-      register: brew_results
 
-# --- Combine All Results ---
-- name: "Combine all installation results"
-  set_fact:
-    all_install_results: >-
-      {{
-        (debian_results.results | default([])) +
-        (fedora_results.results | default([])) +
-        (arch_results.results | default([])) +
-        (aur_results.results | default([])) +
-        (pip_results.results | default([])) +
-        (npm_results.results | default([])) +
-        (cargo_results.results | default([])) +
-        (flatpak_results.results | default([])) +
-        (brew_results.results | default([]))
-      }}
-
-# --- Log All Results ---
-- name: "Log all installation results to file"
-  lineinfile:
-    path: "{{ ansible_env.HOME }}/ansible_package_results.log"
-    line: "{{ item.item.installer | default('os') | upper }} | {{ ansible_date_time.iso8601 }} | {{ item.item.name | default('unknown') }} | {{ item.item.package_name | default('unknown') }} | {{ 'FAILED' if item.failed else ('CHANGED' if item.changed else 'OK') }} | {{ item.msg | default(item.stderr | default('')) }}"
-    create: yes
-  loop: "{{ all_install_results }}"
-  when: all_install_results | length > 0
-
-# --- Display Summary ---
-- name: "Display installation summary"
+# --- Final Summary ---
+- name: "Display installation completion"
   debug:
-    msg: "Package installation completed! Processed {{ all_install_results | length }} packages."
-
-- name: "Display failed installations"
-  debug:
-    msg: "{{ item.item.name | default('unknown') }} ({{ item.item.package_name | default('unknown') }}): {{ item.msg | default(item.stderr | default('Unknown error')) }}"
-  loop: "{{ all_install_results | selectattr('failed') | list }}"
-  when: (all_install_results | selectattr('failed') | list) | length > 0
-  loop_control:
-    label: "Failed:"
-
-- name: "Display changed installations"
-  debug:
-    msg: "{{ item.item.name | default('unknown') }} ({{ item.item.package_name | default('unknown') }})"
-  loop: "{{ all_install_results | selectattr('changed') | rejectattr('failed') | list }}"
-  when: (all_install_results | selectattr('changed') | rejectattr('failed') | list) | length > 0
-  loop_control:
-    label: "Changed:"
-
-- name: "Display successful installations"
-  debug:
-    msg: "{{ item.item.name | default('unknown') }} ({{ item.item.package_name | default('unknown') }})"
-  loop: "{{ all_install_results | rejectattr('failed') | rejectattr('changed') | list }}"
-  when: (all_install_results | rejectattr('failed') | rejectattr('changed') | list) | length > 0
-  loop_control:
-    label: "OK:"
+    msg: "Package installation completed!"
