@@ -70,6 +70,7 @@ setup_git_config() {
     # Set some sensible defaults
     git config --global pull.rebase false
     git config --global init.defaultBranch main
+    git config --global credential.helper '!gh auth git-credential'
     echo "✅ Git configuration complete!"
 }
 
