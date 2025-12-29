@@ -107,7 +107,7 @@ fi
 
 # --- Ansible-Bootstrap playbook ---
 echo "📥 Running Ansible playbook..."
-ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git playbook_ansible-dependencies.yml -K
+ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git playbook_ansible-dependencies.yml -K -l localhost
 echo "✅ Ansible Dependencies playbook complete!"
 
 echo "🎉 Bootstrap complete!  - " $(date +"%T")
