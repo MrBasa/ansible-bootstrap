@@ -129,10 +129,10 @@
         package_name: "chezmoi"
         description: "Dotfile manager"
         installer: "os"
-      - name: "Base Development"
-        package_name: "base-devel"
-        description: "Basic development tools for Arch Linux"
-        installer: "os"
+      #- name: "Base Development"
+      #  package_name: "base-devel"
+      #  description: "Basic development tools for Arch Linux"
+      #  installer: "os"
 
     arch_aur_packages:
       - name: "Anarchism Fortunes AUR"
