@@ -15,12 +15,12 @@ To be utilized with my [dotfiles repo](https://github.com/MrBasa/dotfiles) and [
 
 2. Install common productivity tools:
    ```bash
-   ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git playbook_common-tools.yml -K
+   ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git playbook_common-tools.yml -K -l localhost
    ```
 
 3. Install common development tools:
    ```bash
-   ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git playbook_dev-tools-common.yml -K
+   ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git playbook_dev-tools-common.yml -K -l localhost
    ```
 
 ## Architecture Overview
@@ -52,12 +52,12 @@ Sets up a comprehensive development environment with language support, build too
 
 **Install only common tools:**
 ```bash
-ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git playbook_common-tools.yml -K
+ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git playbook_common-tools.yml -K -l localhost
 ```
 
 **Install development tools:**
 ```bash
-ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git playbook_dev-tools-common.yml -K
+ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git playbook_dev-tools-common.yml -K -l localhost
 ```
 
 ## Extending the System
