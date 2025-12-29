@@ -12,6 +12,12 @@ exec 2>&1
 
 echo "🚀 Starting Ansible Bootstrap...  - " $(date +"%T")
 
+# --- FORCE ANSIBLE CONFIGURATION ---
+# Fixes the "community.general.yaml callback removed" error by forcing the builtin yaml callback via environment variable.
+# This overrides any broken ~/.ansible.cfg or system defaults.
+export ANSIBLE_STDOUT_CALLBACK=ansible.builtin.yaml
+export ANSIBLE_FORCE_COLOR=true
+
 # --- Error handler function ---
 handle_error() {
     echo "❌ Error occurred in script at line: $1"
