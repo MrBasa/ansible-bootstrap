@@ -169,3 +169,15 @@
         sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /usr/local/bin
       args:
         creates: /usr/local/bin/chezmoi
+
+    # --- Shell Configuration ---
+    - name: "Determine location of fish shell"
+      command: which fish
+      register: fish_path
+      changed_when: false
+
+    - name: "Change user shell to fish"
+      become: yes
+      user:
+        name: "{{ ansible_user_id }}"
+        shell: "{{ fish_path.stdout }}"
