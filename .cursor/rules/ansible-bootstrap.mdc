@@ -1,0 +1,14 @@
+---
+description: Conventions for MrBasa/ansible-bootstrap playbooks and ansible-pull.
+alwaysApply: true
+---
+
+# ansible-bootstrap
+
+* Modular playbooks share `playbook_package-managers.yml`. Follow existing `playbook_*.yml` / vars package structure.
+* Typical apply (user runs): `ansible-pull -U https://github.com/mrbasa/ansible-bootstrap.git <playbook> -K -l localhost`
+* **`ansible-pull` checkout is not this folder.** Pull clones/updates `~/.ansible/pull/<hostname>/` (e.g. `~/.ansible/pull/Zephyr`). Edit and commit in this Projects clone; pull will fetch from GitHub into its own directory.
+* Multi-distro (Debian/Ubuntu, Fedora/RHEL, Arch). Prefer idempotent tasks; package failures may continue with logging to `~/ansible_package_failures.log`.
+* **Do not** store lab Podman secrets, PBS keys, or cloud API tokens in this repo. Homelab compose lives in `basa-homelab`.
+* Dotfiles / Chezmoi: separate [dotfiles](https://github.com/MrBasa/dotfiles) repo; this repo installs tools, Chezmoi manages dotfiles.
+* Agent: edit playbooks here; user runs ansible-pull unless they explicitly ask the agent to run a local command.
